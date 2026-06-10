@@ -9,17 +9,44 @@ export const useUserStore = defineStore("user", () => {
 
   const username = ref<string>("")
 
+  const setUserInfo = (user: { username?: string, role?: string, roles?: string[] }) => {
+    username.value = user.username || ""
+    roles.value = user.roles || (user.role ? [user.role] : [])
+  }
+
+  const setUserInfoFromToken = (value: string) => {
+    try {
+      const payload = value.split(".")[0]
+      const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/")
+      const decodedPayload = JSON.parse(atob(normalizedPayload))
+      setUserInfo(decodedPayload)
+    } catch {
+      username.value = "h5"
+      roles.value = ["h5"]
+    }
+  }
+
   // 设置 Token
-  const setToken = (value: string) => {
+  const setToken = (value: string, user?: { username: string, role?: string, roles?: string[] }) => {
     _setToken(value)
+    if (user) {
+      setUserInfo(user)
+    } else {
+      setUserInfoFromToken(value)
+    }
     token.value = value
   }
 
   // 获取用户详情
   const getInfo = async () => {
-    const { data } = await getCurrentUserApi()
-    username.value = data.username
-    roles.value = data.roles
+    try {
+      const { data } = await getCurrentUserApi()
+      setUserInfo(data)
+    } catch {
+      if (token.value) {
+        setUserInfoFromToken(token.value)
+      }
+    }
   }
 
   const changeRoles = (role: string) => {
@@ -35,6 +62,7 @@ export const useUserStore = defineStore("user", () => {
     removeToken()
     token.value = ""
     roles.value = []
+    username.value = ""
   }
 
   return { token, roles, username, setToken, getInfo, changeRoles, resetToken }

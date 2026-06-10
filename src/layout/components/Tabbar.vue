@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { isLoggedIn } from "@@/utils/guest-access"
 import { Icon } from "@iconify/vue"
 import { computed } from "vue"
 
 const router = useRouter()
 const route = useRoute()
 
-const iconMap = {
+const iconMap: Record<string, { icon: string, activeIcon: string }> = {
   "home-o": {
     icon: "mdi:home-outline",
     activeIcon: "mdi:home"
@@ -47,10 +48,19 @@ const tabbarRoutes = computed(() => {
       }
     })
 })
+
+function getTabbarTarget(path: string) {
+  if (!isLoggedIn() && ["/favorites", "/profile"].includes(path)) {
+    return "/login"
+  }
+
+  return path
+}
 </script>
 
 <template>
   <van-tabbar
+    class="app-tabbar"
     route
     fixed
     placeholder
@@ -61,7 +71,7 @@ const tabbarRoutes = computed(() => {
     <van-tabbar-item
       v-for="item in tabbarRoutes"
       :key="item.path"
-      :to="item.path"
+      :to="getTabbarTarget(item.path)"
       replace
     >
       <template #icon>
@@ -74,3 +84,29 @@ const tabbarRoutes = computed(() => {
     </van-tabbar-item>
   </van-tabbar>
 </template>
+
+<style scoped>
+.app-tabbar {
+  --van-tabbar-background: #ffffff;
+  --van-tabbar-item-active-background: #ffffff;
+  --van-tabbar-height: 56px;
+
+  border-top: 1px solid #eef2f7;
+  box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.app-tabbar :deep(.van-tabbar-item) {
+  color: #8a9ab3;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.app-tabbar :deep(.van-tabbar-item--active) {
+  color: #1677ff;
+  font-weight: 700;
+}
+
+.app-tabbar :deep(.van-tabbar-item__icon) {
+  margin-bottom: 3px;
+}
+</style>

@@ -1,18 +1,9 @@
 <script setup lang="ts">
+import type { ProductItem, RawProductItem } from "@@/apis/products/type"
+import { getProductListApi } from "@@/apis/products"
+import { requireLogin } from "@@/utils/guest-access"
 import { computed, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { getProductList } from "@/mock/prudect"
-
-interface ProductItem {
-  id: number
-  categoryId: number
-  name: string
-  image: string
-  phPrice: number
-  isFavorite: boolean
-  sales: number
-  createdAt: string
-}
 
 type FilterTab = "all" | "best" | "newest" | "price"
 
@@ -22,10 +13,15 @@ const router = useRouter()
 const activeTab = ref<FilterTab>("all")
 const priceAsc = ref(true)
 const showFilterPopup = ref(false)
+const loading = ref(false)
+const errorText = ref("")
 
-const categoryId = computed(() => Number(route.query.categoryId || 0))
-const categoryName = computed(() => String(route.query.categoryName || "Products"))
-const products = ref<ProductItem[]>(getProductList(categoryId.value))
+const DEFAULT_CATEGORY_ID = 5
+const DEFAULT_CATEGORY_NAME = "美妆列表"
+
+const categoryId = computed(() => Number(route.query.categoryId || DEFAULT_CATEGORY_ID))
+const categoryName = computed(() => String(route.query.categoryName || DEFAULT_CATEGORY_NAME))
+const products = ref<ProductItem[]>([])
 
 const tabs: Array<{ label: string, value: FilterTab }> = [
   { label: "All", value: "all" },
@@ -51,6 +47,49 @@ const sortedProducts = computed(() => {
 
   return list
 })
+
+function toNumber(value: number | string | undefined, fallback = 0) {
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : fallback
+}
+
+function getProductImage(image?: string) {
+  if (!image) return ""
+  if (/^https?:\/\//.test(image)) return image
+  return `http://localhost:3000${image.startsWith("/") ? image : `/${image}`}`
+}
+
+function getProductDataList(data: RawProductItem[] | { list?: RawProductItem[] }) {
+  if (Array.isArray(data)) return data
+  return Array.isArray(data.list) ? data.list : []
+}
+
+function normalizeProduct(item: RawProductItem): ProductItem {
+  return {
+    id: toNumber(item.id ?? item.productId),
+    categoryId: toNumber(item.categoryId),
+    name: String(item.name ?? item.productName ?? item.title ?? ""),
+    image: getProductImage(String(item.image ?? item.imageUrl ?? item.cover ?? "")),
+    phPrice: toNumber(item.phPrice ?? item.price),
+    isFavorite: Boolean(item.isFavorite ?? item.favorite ?? false),
+    sales: toNumber(item.sales ?? item.salesVolume),
+    createdAt: String(item.createdAt ?? item.createTime ?? "")
+  }
+}
+
+async function getProductList() {
+  loading.value = true
+  errorText.value = ""
+
+  try {
+    const { data } = await getProductListApi({ categoryId: categoryId.value })
+    products.value = getProductDataList(data).map(normalizeProduct).filter(item => item.id && item.name)
+  } catch (error) {
+    errorText.value = error instanceof Error ? error.message : "Failed to load products"
+  } finally {
+    loading.value = false
+  }
+}
 
 function handleBack() {
   router.back()
@@ -81,8 +120,18 @@ function handleProductClick(product: ProductItem) {
 }
 
 function toggleFavorite(product: ProductItem) {
+  if (!requireLogin(router)) return
+
   product.isFavorite = !product.isFavorite
 }
+
+onMounted(() => {
+  getProductList()
+})
+
+watch(categoryId, () => {
+  getProductList()
+})
 </script>
 
 <template>
@@ -106,57 +155,79 @@ function toggleFavorite(product: ProductItem) {
     </van-nav-bar>
 
     <div class="product-list-content">
-      <div class="filter-tabs">
-        <button
-          v-for="tab in tabs"
-          :key="tab.value"
-          class="filter-tab"
-          :class="{ 'filter-tab--active': activeTab === tab.value }"
-          type="button"
-          @click="handleTabClick(tab.value)"
-        >
-          <span>{{ tab.label }}</span>
-          <span v-if="tab.value === 'price'" class="price-arrows">
-            <van-icon name="arrow-up" :class="{ active: activeTab === 'price' && priceAsc }" />
-            <van-icon name="arrow-down" :class="{ active: activeTab === 'price' && !priceAsc }" />
-          </span>
-        </button>
-      </div>
+      <van-loading
+        v-if="loading"
+        class="product-loading"
+        color="#1677ff"
+      />
 
-      <div class="product-grid">
-        <div
-          v-for="item in sortedProducts"
-          :key="item.id"
-          class="product-card"
-          @click="handleProductClick(item)"
+      <van-empty
+        v-else-if="errorText"
+        image="error"
+        :description="errorText"
+      >
+        <van-button
+          size="small"
+          type="primary"
+          @click="getProductList"
         >
-          <div class="product-image-wrap">
-            <img v-if="item.image" class="product-image" :src="item.image" :alt="item.name">
-            <div v-else class="product-image-placeholder" />
-          </div>
+          Retry
+        </van-button>
+      </van-empty>
 
-          <div class="product-info">
-            <div class="product-name">
-              {{ item.name }}
+      <template v-else>
+        <div class="filter-tabs">
+          <button
+            v-for="tab in tabs"
+            :key="tab.value"
+            class="filter-tab"
+            :class="{ 'filter-tab--active': activeTab === tab.value }"
+            type="button"
+            @click="handleTabClick(tab.value)"
+          >
+            <span>{{ tab.label }}</span>
+            <span v-if="tab.value === 'price'" class="price-arrows">
+              <van-icon name="arrow-up" :class="{ active: activeTab === 'price' && priceAsc }" />
+              <van-icon name="arrow-down" :class="{ active: activeTab === 'price' && !priceAsc }" />
+            </span>
+          </button>
+        </div>
+
+        <div class="product-grid">
+          <div
+            v-for="item in sortedProducts"
+            :key="item.id"
+            class="product-card"
+            @click="handleProductClick(item)"
+          >
+            <div class="product-image-wrap">
+              <img v-if="item.image" class="product-image" :src="item.image" :alt="item.name">
+              <div v-else class="product-image-placeholder" />
             </div>
-            <div class="product-bottom">
-              <div class="product-price">
-                ₱{{ item.phPrice.toFixed(2) }}
+
+            <div class="product-info">
+              <div class="product-name">
+                {{ item.name }}
               </div>
-              <button
-                class="favorite-button"
-                type="button"
-                :aria-label="item.isFavorite ? 'Remove favorite' : 'Add favorite'"
-                @click.stop="toggleFavorite(item)"
-              >
-                <van-icon :name="item.isFavorite ? 'like' : 'heart-o'" />
-              </button>
+              <div class="product-bottom">
+                <div class="product-price">
+                  ₱{{ item.phPrice.toFixed(2) }}
+                </div>
+                <button
+                  class="favorite-button"
+                  type="button"
+                  :aria-label="item.isFavorite ? 'Remove favorite' : 'Add favorite'"
+                  @click.stop="toggleFavorite(item)"
+                >
+                  <van-icon :name="item.isFavorite ? 'like' : 'heart-o'" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <van-empty v-if="sortedProducts.length === 0" description="No products found" />
+        <van-empty v-if="sortedProducts.length === 0" description="No products found" />
+      </template>
     </div>
 
     <van-popup
@@ -210,6 +281,12 @@ function toggleFavorite(product: ProductItem) {
 
 .product-list-content {
   padding: 16px;
+}
+
+.product-loading {
+  display: flex;
+  justify-content: center;
+  padding: 64px 0;
 }
 
 .filter-tabs {

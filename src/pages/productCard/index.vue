@@ -1,30 +1,134 @@
 <script setup lang="ts">
-import { ref } from "vue"
-import { useRouter } from "vue-router"
-import productImage from "@/assets/profile/product.png"
+import type { RawProductItem } from "@@/apis/products/type"
+import { getProductListApi } from "@@/apis/products"
+import { requireLogin } from "@@/utils/guest-access"
+import { computed, ref } from "vue"
+import { useRoute, useRouter } from "vue-router"
 
+interface ProductDetail {
+  id: number
+  name: string
+  subtitle: string
+  image: string
+  imageCount: string
+  sales: number
+  description: string
+  chinaCost: string
+  phPrice: string
+  profit: string
+  profitMargin: string
+  minimumOrderQuantity: number
+  unitCost: string
+  sellingPrice: string
+  shippingCost: string
+  otherFees: string
+  params: Array<{ icon: string, label: string, value: string }>
+}
+
+const route = useRoute()
 const router = useRouter()
 
 const isFavorite = ref(false)
+const loading = ref(false)
+const errorText = ref("")
+const product = ref<ProductDetail | null>(null)
 
-const product = {
-  name: "Foldable Storage Box with Lid",
-  image: productImage,
-  imageCount: "1/6",
-  tiktokScore: 95,
-  description: "Multi-functional storage box, foldable design, saves space, perfect for home organization.",
-  chinaCost: "¥8.50",
-  phPrice: "₱199",
-  profit: "₱100+",
-  profitMargin: "54%",
-  params: [
-    { icon: "cart-o", label: "MOQ", value: "50 pcs" },
-    { icon: "logistics", label: "Weight", value: "850g" },
-    { icon: "expand-o", label: "Size", value: "40*30*24 cm" },
-    { icon: "send-gift-o", label: "Shipping", value: "Sea Freight / Air Freight" },
-    { icon: "apps-o", label: "Category", value: "Home & Living / Storage" },
-    { icon: "fire-o", label: "Trend", value: "🔥 Trending (Rising)" }
-  ]
+const productId = computed(() => Number(route.query.id || 0))
+
+function toNumber(value: number | string | undefined, fallback = 0) {
+  const numberValue = Number(value)
+  return Number.isFinite(numberValue) ? numberValue : fallback
+}
+
+function formatPeso(value: number | string | undefined) {
+  return `₱${toNumber(value).toFixed(2)}`
+}
+
+function formatDollar(value: number | string | undefined) {
+  return `$${toNumber(value).toFixed(2)}`
+}
+
+function getAssetUrl(url?: string) {
+  if (!url) return ""
+  if (/^https?:\/\//.test(url)) return url
+  return `http://localhost:3000${url.startsWith("/") ? url : `/${url}`}`
+}
+
+function parseImages(images?: string) {
+  if (!images) return []
+
+  try {
+    const parsed = JSON.parse(images)
+    return Array.isArray(parsed) ? parsed.filter(item => typeof item === "string") : []
+  } catch {
+    return []
+  }
+}
+
+function getProductDataList(data: RawProductItem[] | { list?: RawProductItem[] }) {
+  if (Array.isArray(data)) return data
+  return Array.isArray(data.list) ? data.list : []
+}
+
+function normalizeProduct(item: RawProductItem): ProductDetail {
+  const images = parseImages(item.images)
+  const allImages = [item.cover, ...images].filter(Boolean) as string[]
+  const chinaPrice = toNumber(item.chinaPrice)
+  const phPrice = toNumber(item.phPrice ?? item.price)
+  const profit = toNumber(item.profit, phPrice - chinaPrice)
+  const profitMargin = phPrice ? Math.round((profit / phPrice) * 100) : 0
+  const createdAt = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "--"
+  const minimumOrderQuantity = toNumber(item.minimumOrderQuantity, 10)
+  const shippingFee = toNumber(item.shippingFee)
+  const otherFees = toNumber(item.otherFees)
+
+  return {
+    id: toNumber(item.id ?? item.productId),
+    name: String(item.name ?? item.productName ?? item.title ?? ""),
+    subtitle: String(item.subtitle ?? ""),
+    image: getAssetUrl(allImages[0]),
+    imageCount: `${allImages.length ? 1 : 0}/${allImages.length || 1}`,
+    sales: toNumber(item.sales ?? item.salesVolume),
+    description: String(item.description ?? item.subtitle ?? ""),
+    chinaCost: formatDollar(item.chinaPrice),
+    phPrice: formatPeso(item.phPrice ?? item.price),
+    profit: formatPeso(item.profit),
+    profitMargin: `${profitMargin}%`,
+    minimumOrderQuantity,
+    unitCost: String(chinaPrice),
+    sellingPrice: String(phPrice),
+    shippingCost: String(shippingFee),
+    otherFees: String(otherFees),
+    params: [
+      { icon: "orders-o", label: "MOQ", value: `${minimumOrderQuantity} pcs` },
+      { icon: "cart-o", label: "Stock", value: `${toNumber(item.stock)} pcs` },
+      { icon: "logistics", label: "Shipping Fee", value: formatDollar(shippingFee) },
+      { icon: "apps-o", label: "Category ID", value: String(toNumber(item.categoryId)) },
+      { icon: "fire-o", label: "Sales", value: String(toNumber(item.sales ?? item.salesVolume)) },
+      { icon: "clock-o", label: "Created At", value: createdAt }
+    ]
+  }
+}
+
+async function getProductDetail() {
+  loading.value = true
+  errorText.value = ""
+
+  try {
+    const { data } = await getProductListApi({})
+    const products = getProductDataList(data)
+    const matchedProduct = products.find(item => toNumber(item.id ?? item.productId) === productId.value)
+
+    if (!matchedProduct) {
+      throw new Error("Product not found")
+    }
+
+    product.value = normalizeProduct(matchedProduct)
+  } catch (error) {
+    errorText.value = error instanceof Error ? error.message : "Failed to load product"
+  } finally {
+    loading.value = false
+  }
 }
 
 function handleBack() {
@@ -32,18 +136,32 @@ function handleBack() {
 }
 
 function toggleFavorite() {
+  if (!requireLogin(router)) return
+
   isFavorite.value = !isFavorite.value
 }
 
 function handleCalculateProfit() {
+  if (!requireLogin(router)) return
+  if (!product.value) return
+
   router.push({
     path: "/calculator",
     query: {
-      productName: product.name,
-      phPrice: product.phPrice
+      productName: product.value.name,
+      moq: product.value.minimumOrderQuantity,
+      quantity: product.value.minimumOrderQuantity,
+      unitCost: product.value.unitCost,
+      sellingPrice: product.value.sellingPrice,
+      shippingCost: product.value.shippingCost,
+      otherFees: product.value.otherFees
     }
   })
 }
+
+onMounted(() => {
+  getProductDetail()
+})
 </script>
 
 <template>
@@ -67,77 +185,103 @@ function handleCalculateProfit() {
     </van-nav-bar>
 
     <main class="detail-content">
-      <section class="image-section">
-        <img class="product-image" :src="product.image" :alt="product.name">
-        <div class="image-count">
-          {{ product.imageCount }}
-        </div>
-      </section>
+      <van-loading
+        v-if="loading"
+        class="detail-loading"
+        color="#1677ff"
+      />
 
-      <section class="basic-section">
-        <h1 class="product-name">
-          {{ product.name }}
-        </h1>
-        <div class="score-row">
-          <van-icon name="fire-o" />
-          <span>TikTok Score {{ product.tiktokScore }}</span>
-        </div>
-        <p class="product-description">
-          {{ product.description }}
-        </p>
-      </section>
-
-      <section class="profit-card">
-        <div class="price-grid">
-          <div class="price-item">
-            <div class="price-label">
-              China Cost
-            </div>
-            <div class="price-value cost">
-              {{ product.chinaCost }}
-            </div>
-          </div>
-          <div class="price-item">
-            <div class="price-label">
-              PH Price
-            </div>
-            <div class="price-value ph">
-              {{ product.phPrice }}
-            </div>
-          </div>
-          <div class="price-item">
-            <div class="price-label">
-              Profit
-            </div>
-            <div class="price-value profit">
-              {{ product.profit }}
-            </div>
-          </div>
-        </div>
-        <div class="margin-row">
-          <span>Profit Margin</span>
-          <strong>{{ product.profitMargin }}</strong>
-        </div>
-      </section>
-
-      <section class="params-card">
-        <div
-          v-for="item in product.params"
-          :key="item.label"
-          class="param-row"
+      <van-empty
+        v-else-if="errorText"
+        image="error"
+        :description="errorText"
+      >
+        <van-button
+          size="small"
+          type="primary"
+          @click="getProductDetail"
         >
-          <div class="param-left">
-            <van-icon :name="item.icon" />
-            <span>{{ item.label }}</span>
+          Retry
+        </van-button>
+      </van-empty>
+
+      <template v-else-if="product">
+        <section class="image-section">
+          <img v-if="product.image" class="product-image" :src="product.image" :alt="product.name">
+          <div v-else class="product-image-placeholder" />
+          <div class="image-count">
+            {{ product.imageCount }}
           </div>
-          <div class="param-value">
-            {{ item.value }}
+        </section>
+
+        <section class="basic-section">
+          <h1 class="product-name">
+            {{ product.name }}
+          </h1>
+          <div class="score-row">
+            <van-icon name="fire-o" />
+            <span>Sales {{ product.sales }}</span>
           </div>
-        </div>
-      </section>
+          <p v-if="product.subtitle" class="product-subtitle">
+            {{ product.subtitle }}
+          </p>
+          <p class="product-description">
+            {{ product.description }}
+          </p>
+        </section>
+
+        <section class="profit-card">
+          <div class="price-grid">
+            <div class="price-item">
+              <div class="price-label">
+                China Cost
+              </div>
+              <div class="price-value cost">
+                {{ product.chinaCost }}
+              </div>
+            </div>
+            <div class="price-item">
+              <div class="price-label">
+                PH Price
+              </div>
+              <div class="price-value ph">
+                {{ product.phPrice }}
+              </div>
+            </div>
+            <div class="price-item">
+              <div class="price-label">
+                Profit
+              </div>
+              <div class="price-value profit">
+                {{ product.profit }}
+              </div>
+            </div>
+          </div>
+          <div class="margin-row">
+            <span>Profit Margin</span>
+            <strong>{{ product.profitMargin }}</strong>
+          </div>
+        </section>
+
+        <section class="params-card">
+          <div
+            v-for="item in product.params"
+            :key="item.label"
+            class="param-row"
+          >
+            <div class="param-left">
+              <van-icon :name="item.icon" />
+              <span>{{ item.label }}</span>
+            </div>
+            <div class="param-value">
+              {{ item.value }}
+            </div>
+          </div>
+        </section>
+      </template>
     </main>
 
-    <div class="bottom-bar">
+    <div v-if="product" class="bottom-bar">
       <van-button
         class="bottom-button favorite-action"
         plain
@@ -185,8 +329,15 @@ function handleCalculateProfit() {
 }
 
 .detail-content {
+  min-height: calc(100vh - 46px);
   padding-bottom: 92px;
   background: #f7f9fc;
+}
+
+.detail-loading {
+  display: flex;
+  justify-content: center;
+  padding: 64px 0;
 }
 
 .image-section {
@@ -195,11 +346,16 @@ function handleCalculateProfit() {
   background: #f3f4f6;
 }
 
-.product-image {
+.product-image,
+.product-image-placeholder {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.product-image-placeholder {
+  background: #f3f4f6;
 }
 
 .image-count {
@@ -249,11 +405,17 @@ function handleCalculateProfit() {
   font-weight: 700;
 }
 
+.product-subtitle,
 .product-description {
   margin: 10px 0 0;
   color: #6b7280;
   font-size: 14px;
   line-height: 21px;
+}
+
+.product-subtitle {
+  color: #374151;
+  font-weight: 600;
 }
 
 .profit-card {

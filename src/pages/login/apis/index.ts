@@ -12,7 +12,23 @@ export function getCaptchaApi() {
 /** 登录并返回 Token */
 export function loginApi(data: Auth.LoginRequestData) {
   return request<Auth.LoginResponseData>({
-    url: "auth/login",
+    url: "h5/login",
+    method: "post",
+    data
+  })
+}
+
+export function sendEmailCode(email: string) {
+  return request<Auth.SendEmailCodeResponseData>({
+    url: "h5/email-code/send",
+    method: "post",
+    data: { email }
+  })
+}
+
+export function emailCodeLogin(data: Auth.EmailCodeLoginRequestData) {
+  return request<Auth.LoginResponseData>({
+    url: "h5/email-code/login",
     method: "post",
     data
   })

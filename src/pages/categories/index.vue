@@ -1,32 +1,39 @@
 <script setup lang="ts">
+import type { CategoryItem, RawCategoryItem } from "@@/apis/categories/type"
+import { getCategoryListApi } from "@@/apis/categories"
 import { useRouter } from "vue-router"
-import { categoryList } from "@/mock/prudect"
-
-interface CategoryItem {
-  id: number
-  name: string
-  icon: string
-}
 
 const router = useRouter()
+const categoryList = ref<CategoryItem[]>([])
+const loading = ref(false)
+const errorText = ref("")
 
-const iconMap: Record<string, string> = {
-  "women-wear": "manager-o",
-  "men-wear": "friends-o",
-  shoes: "cart-o",
-  bags: "bag-o",
-  beauty: "flower-o",
-  jewelry: "diamond-o",
-  "kids-baby": "smile-o",
-  "home-living": "wap-home-o",
-  toys: "gift-o",
-  stationery: "notes-o",
-  electronics: "phone-o",
-  sports: "fire-o",
-  automotive: "logistics",
-  "pet-supplies": "like-o",
-  food: "shop-o",
-  others: "apps-o"
+function normalizeCategory(item: RawCategoryItem): CategoryItem {
+  return {
+    id: Number(item.id ?? item.categoryId ?? 0),
+    name: String(item.name ?? item.categoryName ?? ""),
+    icon: item.icon || ""
+  }
+}
+
+function getCategoryIcon(icon?: string) {
+  if (!icon) return "apps-o"
+  if (/^https?:\/\//.test(icon)) return icon
+  return `http://localhost:3000${icon.startsWith("/") ? icon : `/${icon}`}`
+}
+
+async function getCategoryList() {
+  loading.value = true
+  errorText.value = ""
+
+  try {
+    const { data } = await getCategoryListApi()
+    categoryList.value = data.map(normalizeCategory).filter(item => item.id && item.name)
+  } catch (error) {
+    errorText.value = error instanceof Error ? error.message : "Failed to load categories"
+  } finally {
+    loading.value = false
+  }
 }
 
 function handleCategoryClick(category: CategoryItem) {
@@ -38,6 +45,10 @@ function handleCategoryClick(category: CategoryItem) {
     }
   })
 }
+
+onMounted(() => {
+  getCategoryList()
+})
 </script>
 
 <template>
@@ -51,7 +62,35 @@ function handleCategoryClick(category: CategoryItem) {
       </div>
     </div>
 
-    <div class="category-grid">
+    <van-loading
+      v-if="loading"
+      class="categories-loading"
+      color="#1677ff"
+    />
+
+    <van-empty
+      v-else-if="errorText"
+      image="error"
+      :description="errorText"
+    >
+      <van-button
+        size="small"
+        type="primary"
+        @click="getCategoryList"
+      >
+        Retry
+      </van-button>
+    </van-empty>
+
+    <van-empty
+      v-else-if="!categoryList.length"
+      description="No categories"
+    />
+
+    <div
+      v-else
+      class="category-grid"
+    >
       <div
         v-for="item in categoryList"
         :key="item.id"
@@ -59,7 +98,7 @@ function handleCategoryClick(category: CategoryItem) {
         @click="handleCategoryClick(item)"
       >
         <div class="category-icon">
-          <van-icon :name="iconMap[item.icon] || 'apps-o'" />
+          <van-icon :name="getCategoryIcon(item.icon)" />
         </div>
         <div class="category-name">
           {{ item.name }}

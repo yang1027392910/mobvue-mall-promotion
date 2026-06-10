@@ -12,7 +12,9 @@ const isLoading = computed(() => userStore.token && !userStore.username)
 watch(
   () => userStore.token,
   (newVal) => {
-    newVal && userStore.getInfo()
+    if (newVal && !userStore.username) {
+      userStore.getInfo()
+    }
   },
   {
     immediate: true

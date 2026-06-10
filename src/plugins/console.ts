@@ -1,5 +1,6 @@
 import VConsole from "vconsole"
 
 export function installConsole() {
-  (import.meta.env.VITE_CONSOLE === "true") && new VConsole()
+  const isDebugMode = import.meta.env.MODE === "debug" || new URLSearchParams(window.location.search).get("debug") === "true"
+  import.meta.env.VITE_CONSOLE === "true" && isDebugMode && new VConsole()
 }

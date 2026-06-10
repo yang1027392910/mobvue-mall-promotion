@@ -38,6 +38,14 @@ export const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: "/register",
+    component: () => import("@/pages/register/index.vue"),
+    name: "Register",
+    meta: {
+      title: "Register"
+    }
+  },
+  {
     path: "/",
     component: () => import("@/pages/home/index.vue"),
     name: "Home",
@@ -111,10 +119,6 @@ export const routes: RouteRecordRaw[] = [
         navBar: {
           showNavBar: false,
           showLeftArrow: false
-        },
-        tabbar: {
-          showTabbar: true,
-          icon: "mdi:calculator"
         }
       }
     }

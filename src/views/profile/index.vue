@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { isLoggedIn } from "@@/utils/guest-access"
+import { useRouter } from "vue-router"
+import { useUserStore } from "@/pinia/stores/user"
+
 interface BenefitItem {
   title: string
   icon: string
@@ -26,100 +30,130 @@ const accountItems: AccountItem[] = [
   { title: "Coupons", icon: "label-o", remark: "2 Available" },
   { title: "Invites & Rewards", icon: "gift-o" }
 ]
+
+const router = useRouter()
+const userStore = useUserStore()
+const loggedIn = computed(() => isLoggedIn())
+
+function handleLogin() {
+  router.push("/login")
+}
+
+function handleLogout() {
+  userStore.resetToken()
+  router.replace("/login")
+}
 </script>
 
 <template>
   <div class="profile-page">
-    <div class="profile-banner">
-      <div class="banner-top">
-        <div />
-        <van-icon name="setting-o" class="setting-icon" />
+    <div v-if="!loggedIn" class="profile-guest">
+      <van-icon class="profile-guest-icon" name="user-o" />
+      <div class="profile-guest-title">
+        Login to unlock this feature
       </div>
-      <div class="banner-body">
-        <div class="avatar-shell">
-          <div class="avatar-placeholder">
-            S
-          </div>
-        </div>
-        <div class="profile-info">
-          <div class="hello-text">
-            Hello, Seller! 👋
-          </div>
-          <div class="member-tag">
-            Premium Member
-          </div>
-          <div class="member-since">
-            Member since: May 15, 2024
-          </div>
-        </div>
-        <van-button class="upgrade-button" type="primary" round size="small">
-          Upgrade
-        </van-button>
-      </div>
+      <van-button class="profile-guest-button" type="primary" round @click="handleLogin">
+        Login
+      </van-button>
     </div>
 
-    <div class="profile-content">
-      <section class="card membership-card">
-        <div class="card-header">
-          <div class="card-title">
-            Membership Benefits
-          </div>
+    <template v-else>
+      <div class="profile-banner">
+        <div class="banner-top">
+          <div />
+          <van-icon name="setting-o" class="setting-icon" />
         </div>
-        <div class="benefits-row">
-          <div v-for="item in benefits" :key="item.title" class="benefit-item">
-            <div class="benefit-icon" :class="item.color">
-              <van-icon :name="item.icon" />
-            </div>
-            <div class="benefit-title">
-              {{ item.title }}
+        <div class="banner-body">
+          <div class="avatar-shell">
+            <div class="avatar-placeholder">
+              S
             </div>
           </div>
+          <div class="profile-info">
+            <div class="hello-text">
+              Hello, Seller! 👋
+            </div>
+            <div class="member-tag">
+              Premium Member
+            </div>
+            <div class="member-since">
+              Member since: May 15, 2024
+            </div>
+          </div>
+          <van-button class="upgrade-button" type="primary" round size="small">
+            Upgrade
+          </van-button>
         </div>
-      </section>
+      </div>
 
-      <section class="card account-card">
-        <div class="card-header">
-          <div class="card-title">
-            My Account
+      <div class="profile-content">
+        <section class="card membership-card">
+          <div class="card-header">
+            <div class="card-title">
+              Membership Benefits
+            </div>
           </div>
-        </div>
-        <div class="account-list">
-          <div v-for="item in accountItems" :key="item.title" class="account-item">
-            <div class="account-item-left">
-              <div class="account-icon">
+          <div class="benefits-row">
+            <div v-for="item in benefits" :key="item.title" class="benefit-item">
+              <div class="benefit-icon" :class="item.color">
                 <van-icon :name="item.icon" />
               </div>
-              <div class="account-label">
+              <div class="benefit-title">
                 {{ item.title }}
               </div>
             </div>
-            <div class="account-item-right">
-              <span v-if="item.remark" class="item-remark">{{ item.remark }}</span>
-              <van-icon name="arrow" class="arrow-icon" />
-            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section class="card plan-card">
-        <div class="card-header plan-header">
-          <div>
+        <section class="card account-card">
+          <div class="card-header">
             <div class="card-title">
-              Membership Plan
-            </div>
-            <div class="plan-name">
-              Premium Member
-            </div>
-            <div class="plan-valid">
-              Valid until: 2025-08-15
+              My Account
             </div>
           </div>
-          <van-button class="manage-button" type="primary" round size="small">
-            Manage
-          </van-button>
-        </div>
-      </section>
-    </div>
+          <div class="account-list">
+            <div v-for="item in accountItems" :key="item.title" class="account-item">
+              <div class="account-item-left">
+                <div class="account-icon">
+                  <van-icon :name="item.icon" />
+                </div>
+                <div class="account-label">
+                  {{ item.title }}
+                </div>
+              </div>
+              <div class="account-item-right">
+                <span v-if="item.remark" class="item-remark">{{ item.remark }}</span>
+                <van-icon name="arrow" class="arrow-icon" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card plan-card">
+          <div class="card-header plan-header">
+            <div>
+              <div class="card-title">
+                Membership Plan
+              </div>
+              <div class="plan-name">
+                Premium Member
+              </div>
+              <div class="plan-valid">
+                Valid until: 2025-08-15
+              </div>
+            </div>
+            <van-button class="manage-button" type="primary" round size="small">
+              Manage
+            </van-button>
+          </div>
+        </section>
+
+        <van-button class="logout-button" block round @click="handleLogout">
+          <van-icon name="revoke" />
+          Log Out
+        </van-button>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -131,6 +165,36 @@ const accountItems: AccountItem[] = [
   margin: 0 auto;
   background: #f7f9fc;
   padding-bottom: 90px;
+}
+.profile-guest {
+  min-height: calc(100vh - 90px);
+  padding: 32px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+.profile-guest-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  color: #1677ff;
+  font-size: 32px;
+  background: #eef6ff;
+}
+.profile-guest-title {
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 700;
+}
+.profile-guest-button {
+  min-width: 120px;
+  height: 42px;
+  font-weight: 700;
 }
 .profile-banner {
   position: relative;
@@ -344,6 +408,18 @@ const accountItems: AccountItem[] = [
 }
 .manage-button {
   min-width: 96px;
+}
+.logout-button {
+  height: 46px;
+  border: 0;
+  color: #ef4444;
+  font-size: 15px;
+  font-weight: 700;
+  background: #ffffff;
+  box-shadow: 0 14px 28px rgba(16, 24, 40, 0.06);
+}
+.logout-button :deep(.van-button__content) {
+  gap: 8px;
 }
 @media (max-width: 390px) {
   .profile-page {
