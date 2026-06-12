@@ -15,9 +15,9 @@ const emit = defineEmits<{
 
 <template>
   <section class="section-card input-card">
-    <h2 class="section-title">
+    <!-- <h2 class="section-title">
       Input Information
-    </h2>
+    </h2> -->
 
     <div class="input-list">
       <template
@@ -90,7 +90,7 @@ const emit = defineEmits<{
 }
 
 .input-card {
-  padding: 10px 12px 10px;
+  padding: 0 12px 10px;
 }
 
 .section-title {
@@ -282,7 +282,7 @@ const emit = defineEmits<{
 
 .calculate-button {
   height: 35px;
-  margin-top: 12px;
+  margin-top: 4px;
   border: 0;
   border-radius: 12px;
   background: #2563ff;

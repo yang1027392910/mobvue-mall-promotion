@@ -124,6 +124,34 @@ export const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: "/logistics-suppliers",
+    component: () => import("@/pages/logisticsSuppliers/index.vue"),
+    name: "LogisticsSuppliers",
+    meta: {
+      title: "Logistics Suppliers",
+      layout: {
+        navBar: {
+          showNavBar: false,
+          showLeftArrow: false
+        }
+      }
+    }
+  },
+  {
+    path: "/procurement-support",
+    component: () => import("@/pages/procurementSupport/index.vue"),
+    name: "ProcurementSupport",
+    meta: {
+      title: "Procurement Support",
+      layout: {
+        navBar: {
+          showNavBar: false,
+          showLeftArrow: false
+        }
+      }
+    }
+  },
+  {
     path: "/favorites",
     component: () => import("@/pages/favorites/index.vue"),
     name: "Favorites",

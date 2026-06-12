@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CalculatorInputRow, CalculatorResultRow, CalculatorTab, CalculatorTabOption } from "./types"
-import { requireLogin } from "@@/utils/guest-access"
+import { Icon } from "@iconify/vue"
 import { computed, onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import BottomActions from "./components/BottomActions.vue"
@@ -28,21 +28,11 @@ interface CalculationResult {
   profitMargin: number
 }
 
-interface CalculationRecord extends CalculationResult {
-  id: string
-  productName: string
-  quantity: number
-  unitCost: number
-  sellingPrice: number
-  shippingCost: number
-  otherFees: number
-  createdAt: string
-}
-
 const route = useRoute()
 const router = useRouter()
 
-const activeTab = ref<CalculatorTab>("product")
+const isProfileWeightOnly = computed(() => route.query.from === "profile")
+const activeTab = ref<CalculatorTab>(isProfileWeightOnly.value || route.query.mode === "weight" ? "weight" : "product")
 const productName = ref(String(route.query.productName || "Product"))
 const moq = ref(Number(route.query.moq || route.query.quantity || 10))
 const quantity = ref(Math.max(Number(route.query.quantity || moq.value), moq.value))
@@ -260,13 +250,15 @@ function handleShippingRateUpdate(value: string) {
 }
 
 function handleLogisticsSuppliers() {
-  if (!requireLogin(router)) return
-
-  console.log("go logistics suppliers")
+  router.push("/logistics-suppliers")
 }
 
 function handleBack() {
   router.back()
+}
+
+function handleCustomerService() {
+  router.push("/procurement-support")
 }
 
 function handleStepperUpdate(label: string, value: number) {
@@ -291,33 +283,6 @@ function handleFieldUpdate(label: string, value: string) {
   }
 }
 
-function saveCalculation() {
-  if (!requireLogin(router)) return
-
-  calculateProfit()
-
-  const recordsText = localStorage.getItem("calculation_records")
-  const records: CalculationRecord[] = recordsText ? JSON.parse(recordsText) : []
-
-  records.unshift({
-    id: `${Date.now()}`,
-    productName: productName.value,
-    quantity: quantity.value,
-    unitCost: toNumber(unitCost.value),
-    sellingPrice: toNumber(sellingPrice.value),
-    shippingCost: toNumber(shippingCost.value),
-    otherFees: toNumber(otherFees.value),
-    productCost: result.value.productCost,
-    salesAmount: result.value.salesAmount,
-    totalCost: result.value.totalCost,
-    estimatedProfit: result.value.estimatedProfit,
-    profitMargin: result.value.profitMargin,
-    createdAt: new Date().toISOString()
-  })
-
-  localStorage.setItem("calculation_records", JSON.stringify(records))
-}
-
 onMounted(() => {
   calculateProfit()
   calculateShipping()
@@ -335,14 +300,14 @@ onMounted(() => {
       @click-left="handleBack"
     >
       <template #right>
-        <button class="history-button" type="button">
-          History
+        <button class="history-button" type="button" aria-label="Contact customer service" @click="handleCustomerService">
+          <Icon icon="mdi:customer-service" />
         </button>
       </template>
     </van-nav-bar>
 
     <main class="calculator-content">
-      <ModeTabs v-model="activeTab" :tabs="tabs" />
+      <ModeTabs v-if="!isProfileWeightOnly" v-model="activeTab" :tabs="tabs" />
       <InputInformationCard
         v-if="activeTab === 'product'"
         :rows="currentData.inputs"
@@ -371,8 +336,8 @@ onMounted(() => {
       />
       <BottomActions
         v-if="activeTab === 'product'"
-        @calculate-again="calculateProfit"
-        @save="saveCalculation"
+        @customer-support="handleCustomerService"
+        @logistics-suppliers="handleLogisticsSuppliers"
       />
     </main>
   </div>
@@ -402,12 +367,14 @@ onMounted(() => {
 }
 
 .history-button {
+  width: 32px;
   height: 32px;
   border: 0;
   background: transparent;
   color: #2563ff;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 23px;
+  display: inline-grid;
+  place-items: center;
   padding: 0;
 }
 

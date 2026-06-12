@@ -17,7 +17,10 @@ export type CaptchaResponseData = ApiResponseData<string>
 export type LoginResponseData = ApiResponseData<{
   token: string
   user?: {
-    username: string
+    username?: string
+    name?: string
+    nickname?: string
+    email?: string
     role?: string
     roles?: string[]
   }

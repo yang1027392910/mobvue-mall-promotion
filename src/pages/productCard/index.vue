@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { RawProductItem } from "@@/apis/products/type"
+import { favoriteClickApi } from "@@/apis/favorite"
 import { getProductListApi } from "@@/apis/products"
 import { requireLogin } from "@@/utils/guest-access"
 import { computed, ref } from "vue"
@@ -10,6 +11,7 @@ interface ProductDetail {
   name: string
   subtitle: string
   image: string
+  images: string[]
   imageCount: string
   sales: number
   description: string
@@ -22,6 +24,7 @@ interface ProductDetail {
   sellingPrice: string
   shippingCost: string
   otherFees: string
+  isFavorite: boolean
   params: Array<{ icon: string, label: string, value: string }>
 }
 
@@ -30,8 +33,10 @@ const router = useRouter()
 
 const isFavorite = ref(false)
 const loading = ref(false)
+const favoriteLoading = ref(false)
 const errorText = ref("")
 const product = ref<ProductDetail | null>(null)
+const activeImageIndex = ref(0)
 
 const productId = computed(() => Number(route.query.id || 0))
 
@@ -51,7 +56,9 @@ function formatDollar(value: number | string | undefined) {
 function getAssetUrl(url?: string) {
   if (!url) return ""
   if (/^https?:\/\//.test(url)) return url
-  return `http://localhost:3000${url.startsWith("/") ? url : `/${url}`}`
+
+  const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || ""
+  return `${imageBaseUrl.replace(/\/$/, "")}/${url.replace(/^\//, "")}`
 }
 
 function parseImages(images?: string) {
@@ -73,6 +80,7 @@ function getProductDataList(data: RawProductItem[] | { list?: RawProductItem[] }
 function normalizeProduct(item: RawProductItem): ProductDetail {
   const images = parseImages(item.images)
   const allImages = [item.cover, ...images].filter(Boolean) as string[]
+  const imageUrls = allImages.map(getAssetUrl).filter(Boolean)
   const chinaPrice = toNumber(item.chinaPrice)
   const phPrice = toNumber(item.phPrice ?? item.price)
   const profit = toNumber(item.profit, phPrice - chinaPrice)
@@ -86,8 +94,9 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
     id: toNumber(item.id ?? item.productId),
     name: String(item.name ?? item.productName ?? item.title ?? ""),
     subtitle: String(item.subtitle ?? ""),
-    image: getAssetUrl(allImages[0]),
-    imageCount: `${allImages.length ? 1 : 0}/${allImages.length || 1}`,
+    image: imageUrls[0] || "",
+    images: imageUrls,
+    imageCount: `${imageUrls.length ? 1 : 0}/${imageUrls.length || 1}`,
     sales: toNumber(item.sales ?? item.salesVolume),
     description: String(item.description ?? item.subtitle ?? ""),
     chinaCost: formatDollar(item.chinaPrice),
@@ -99,6 +108,7 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
     sellingPrice: String(phPrice),
     shippingCost: String(shippingFee),
     otherFees: String(otherFees),
+    isFavorite: Boolean(item.isFavorite ?? item.favorite ?? false),
     params: [
       { icon: "orders-o", label: "MOQ", value: `${minimumOrderQuantity} pcs` },
       { icon: "cart-o", label: "Stock", value: `${toNumber(item.stock)} pcs` },
@@ -123,7 +133,10 @@ async function getProductDetail() {
       throw new Error("Product not found")
     }
 
-    product.value = normalizeProduct(matchedProduct)
+    const normalizedProduct = normalizeProduct(matchedProduct)
+    product.value = normalizedProduct
+    activeImageIndex.value = 0
+    isFavorite.value = normalizedProduct.isFavorite
   } catch (error) {
     errorText.value = error instanceof Error ? error.message : "Failed to load product"
   } finally {
@@ -135,10 +148,21 @@ function handleBack() {
   router.back()
 }
 
-function toggleFavorite() {
+async function toggleFavorite() {
   if (!requireLogin(router)) return
+  if (!product.value || favoriteLoading.value) return
 
-  isFavorite.value = !isFavorite.value
+  favoriteLoading.value = true
+
+  try {
+    await favoriteClickApi({
+      productId: product.value.id
+    })
+    isFavorite.value = !isFavorite.value
+    product.value.isFavorite = isFavorite.value
+  } finally {
+    favoriteLoading.value = false
+  }
 }
 
 function handleCalculateProfit() {
@@ -178,7 +202,7 @@ onMounted(() => {
         <button class="nav-icon-button" type="button" aria-label="Share">
           <van-icon name="share-o" />
         </button>
-        <button class="nav-icon-button" type="button" aria-label="Favorite" @click="toggleFavorite">
+        <button class="nav-icon-button" type="button" aria-label="Favorite" :disabled="favoriteLoading" @click="toggleFavorite">
           <van-icon :name="isFavorite ? 'like' : 'heart-o'" />
         </button>
       </template>
@@ -207,10 +231,22 @@ onMounted(() => {
 
       <template v-else-if="product">
         <section class="image-section">
-          <img v-if="product.image" class="product-image" :src="product.image" :alt="product.name">
+          <van-swipe
+            v-if="product.images.length"
+            v-model:active="activeImageIndex"
+            class="product-image-swipe"
+            indicator-color="#ffffff"
+          >
+            <van-swipe-item
+              v-for="(image, index) in product.images"
+              :key="`${image}-${index}`"
+            >
+              <img class="product-image" :src="image" :alt="product.name">
+            </van-swipe-item>
+          </van-swipe>
           <div v-else class="product-image-placeholder" />
           <div class="image-count">
-            {{ product.imageCount }}
+            {{ product.images.length ? activeImageIndex + 1 : 0 }}/{{ product.images.length || 1 }}
           </div>
         </section>
 
@@ -285,11 +321,12 @@ onMounted(() => {
       <van-button
         class="bottom-button favorite-action"
         plain
-        icon="heart-o"
+        :icon="isFavorite ? 'like' : 'heart-o'"
+        :loading="favoriteLoading"
         color="#2563eb"
         @click="toggleFavorite"
       >
-        Add to Favorites
+        {{ isFavorite ? "Favorited" : "Add to Favorites" }}
       </van-button>
       <van-button class="bottom-button calculate-action" type="primary" color="#2563eb" @click="handleCalculateProfit">
         Calculate Profit
@@ -342,8 +379,38 @@ onMounted(() => {
 
 .image-section {
   position: relative;
-  aspect-ratio: 1 / 1;
+  height: 300px;
   background: #f3f4f6;
+}
+
+.product-image-swipe {
+  width: 100%;
+  height: 100%;
+}
+
+.product-image-swipe :deep(.van-swipe__track),
+.product-image-swipe :deep(.van-swipe-item) {
+  height: 100%;
+}
+
+.product-image-swipe :deep(.van-swipe__indicators) {
+  bottom: 14px;
+}
+
+.product-image-swipe :deep(.van-swipe__indicator) {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(17, 24, 39, 0.18);
+  opacity: 1;
+  box-shadow: 0 2px 6px rgba(17, 24, 39, 0.22);
+}
+
+.product-image-swipe :deep(.van-swipe__indicator--active) {
+  width: 20px;
+  background: #2563eb;
+  border-color: rgba(255, 255, 255, 0.86);
 }
 
 .product-image,

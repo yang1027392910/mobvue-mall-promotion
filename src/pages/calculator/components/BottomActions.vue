@@ -1,17 +1,17 @@
 <script setup lang="ts">
 const emit = defineEmits<{
-  calculateAgain: []
-  save: []
+  customerSupport: []
+  logisticsSuppliers: []
 }>()
 </script>
 
 <template>
   <div class="bottom-actions">
-    <van-button class="secondary-action" @click="emit('calculateAgain')">
-      Calculate Again
+    <van-button class="secondary-action" icon="service-o" @click="emit('customerSupport')">
+      Support
     </van-button>
-    <van-button class="primary-action" @click="emit('save')">
-      Save Calculation
+    <van-button class="primary-action" icon="logistics" @click="emit('logisticsSuppliers')">
+      Logistics
     </van-button>
   </div>
 </template>

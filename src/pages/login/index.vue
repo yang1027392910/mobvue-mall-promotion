@@ -24,7 +24,12 @@ const loginFormData = reactive({
 
 const emailPattern = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
 const codePattern = /^\d{6}$/
-const sendCodeText = computed(() => countdown.value > 0 ? `Resend ${countdown.value}s` : "Send Code")
+const isSendCodeDisabled = computed(() => sendingCode.value || countdown.value > 0)
+const sendCodeText = computed(() => {
+  if (sendingCode.value) return "Sending..."
+  if (countdown.value > 0) return `${countdown.value}s`
+  return "Send Code"
+})
 
 function onSubmit() {
   if (loading.value) return
@@ -80,7 +85,7 @@ function startCountdown() {
 }
 
 function handleSendCode() {
-  if (sendingCode.value || countdown.value > 0) return
+  if (isSendCodeDisabled.value) return
   if (!validateEmail()) return
 
   sendingCode.value = true
@@ -175,7 +180,7 @@ onBeforeUnmount(() => {
                   <button
                     class="send-code-button"
                     type="button"
-                    :disabled="sendingCode || countdown > 0"
+                    :disabled="isSendCodeDisabled"
                     @click="handleSendCode"
                   >
                     {{ sendCodeText }}

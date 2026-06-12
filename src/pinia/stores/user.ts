@@ -2,6 +2,15 @@ import { getCurrentUserApi } from "@@/apis/users"
 import { setToken as _setToken, getToken, removeToken } from "@@/utils/cache/cookies"
 import { pinia } from "@/pinia"
 
+interface UserInfo {
+  username?: string
+  name?: string
+  nickname?: string
+  email?: string
+  role?: string
+  roles?: string[]
+}
+
 export const useUserStore = defineStore("user", () => {
   const token = ref<string>(getToken() || "")
 
@@ -9,25 +18,24 @@ export const useUserStore = defineStore("user", () => {
 
   const username = ref<string>("")
 
-  const setUserInfo = (user: { username?: string, role?: string, roles?: string[] }) => {
-    username.value = user.username || ""
-    roles.value = user.roles || (user.role ? [user.role] : [])
+  const setUserInfo = (user: UserInfo = {}) => {
+    username.value = user.username || user.name || user.nickname || user.email || "h5"
+    roles.value = user.roles?.length ? user.roles : (user.role ? [user.role] : ["h5"])
   }
 
   const setUserInfoFromToken = (value: string) => {
     try {
-      const payload = value.split(".")[0]
+      const payload = value.split(".")[1] || value.split(".")[0]
       const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/")
       const decodedPayload = JSON.parse(atob(normalizedPayload))
       setUserInfo(decodedPayload)
     } catch {
-      username.value = "h5"
-      roles.value = ["h5"]
+      setUserInfo()
     }
   }
 
   // 设置 Token
-  const setToken = (value: string, user?: { username: string, role?: string, roles?: string[] }) => {
+  const setToken = (value: string, user?: UserInfo) => {
     _setToken(value)
     if (user) {
       setUserInfo(user)

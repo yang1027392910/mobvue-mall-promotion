@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_PWA_DESCRIPTION: string
   readonly VITE_PWA_THEME_COLOR: string
   readonly VITE_BASE_URL: string
+  readonly VITE_IMAGE_BASE_URL: string
   readonly VITE_PUBLIC_PATH: string
 }
 

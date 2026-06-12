@@ -2,6 +2,7 @@
 import type { CategoryItem, RawCategoryItem } from "@@/apis/categories/type"
 import { getCategoryListApi } from "@@/apis/categories"
 import { useRouter } from "vue-router"
+import bcRightImage from "@/assets/categories/bc-r.png"
 
 const router = useRouter()
 const categoryList = ref<CategoryItem[]>([])
@@ -19,7 +20,9 @@ function normalizeCategory(item: RawCategoryItem): CategoryItem {
 function getCategoryIcon(icon?: string) {
   if (!icon) return "apps-o"
   if (/^https?:\/\//.test(icon)) return icon
-  return `http://localhost:3000${icon.startsWith("/") ? icon : `/${icon}`}`
+
+  const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || ""
+  return `${imageBaseUrl.replace(/\/$/, "")}/${icon.replace(/^\//, "")}`
 }
 
 async function getCategoryList() {
@@ -54,12 +57,18 @@ onMounted(() => {
 <template>
   <div class="categories-page">
     <div class="categories-header">
-      <div class="categories-title">
-        Categories
+      <div class="categories-heading-copy">
+        <h1>Browse Categories</h1>
+        <p>Find products from trusted China suppliers</p>
       </div>
-      <div class="categories-subtitle">
-        {{ categoryList.length }} product types
-      </div>
+      <img class="categories-hero-image" :src="bcRightImage" alt="">
+    </div>
+
+    <div class="category-stat-card">
+      <span class="category-stat-icon">
+        <van-icon name="apps-o" />
+      </span>
+      <span>{{ categoryList.length }} Product Categories</span>
     </div>
 
     <van-loading
@@ -100,79 +109,282 @@ onMounted(() => {
         <div class="category-icon">
           <van-icon :name="getCategoryIcon(item.icon)" />
         </div>
-        <div class="category-name">
-          {{ item.name }}
+        <div class="category-content">
+          <div class="category-name">
+            {{ item.name }}
+          </div>
+          <div class="category-count">
+            0+ items
+          </div>
         </div>
+        <span class="category-arrow">
+          <van-icon name="arrow" />
+        </span>
       </div>
     </div>
+
+    <section v-if="!loading && !errorText" class="trusted-card">
+      <div class="trusted-icon">
+        <van-icon name="shield-o" />
+      </div>
+      <div class="trusted-content">
+        <h2>Trusted Suppliers</h2>
+        <p>All categories are sourced from verified suppliers in China.</p>
+      </div>
+      <van-icon class="trusted-bg-icon" name="shield-o" />
+    </section>
   </div>
 </template>
 
 <style scoped>
 .categories-page {
-  min-height: calc(100vh - 56px);
-  padding: 18px 14px 88px;
-  background: #f7f9fc;
+  /* min-height: 100vh; */
+  padding: 0 0 96px;
+  background: #f6f8fc;
 }
 
 .categories-header {
-  margin-bottom: 16px;
+  position: relative;
+  /* min-height: 150px; */
+  padding: 20px 15px 0;
+  overflow: hidden;
 }
 
-.categories-title {
-  color: #111827;
-  font-size: 22px;
+.categories-heading-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 245px;
+}
+
+.categories-heading-copy h1 {
+  padding: 12x 0 1px;
+  margin: 0;
+  color: #071b3a;
+  font-size: 16px;
   font-weight: 700;
+  line-height: 1.15;
 }
 
-.categories-subtitle {
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 13px;
+.categories-heading-copy p {
+  margin: 8px 0 0;
+  color: #6b7890;
+  font-size: 15px;
+  line-height: 21px;
+}
+
+.categories-hero-image {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 0;
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.category-stat-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 40px;
+  margin: 12px 15px 0;
+  /* padding: 0 10px; */
+  border-radius: 18px;
+  /* background: #ffffff; */
+  color: #071b3a;
+  font-size: 16px;
+  font-weight: 700;
+  /* box-shadow: 0 8px 24px rgba(20, 40, 80, 0.06); */
+}
+
+.category-stat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 20px;
+  background: linear-gradient(135deg, #0b6bff, #3d8bff);
+}
+
+.categories-loading {
+  display: flex;
+  justify-content: center;
+  padding: 64px 0;
 }
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 10px 0;
 }
 
 .category-item {
+  position: relative;
   min-width: 0;
-  aspect-ratio: 1 / 1;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+  height: 90px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 10px 8px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 5px;
+  box-shadow: 0 8px 24px rgba(20, 40, 80, 0.07);
   cursor: pointer;
 }
 
 .category-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
+  /* flex: 0 0 56px; */
+  width: 40px;
+  height: 60px;
+  border-radius: 16px;
   background: #eef6ff;
-  color: #1677ff;
-  font-size: 22px;
+  color: #0b6bff;
+  font-size: 16px;
   display: grid;
   place-items: center;
 }
 
+.category-icon :deep(.van-icon__image) {
+  width: 38px;
+  height: 38px;
+  /* object-fit: contain; */
+}
+
+.category-content {
+  min-width: 0;
+  flex: 1;
+  margin-left: 12px;
+  padding-right: 24px;
+}
+
 .category-name {
-  width: 100%;
-  margin-top: 10px;
-  color: #111827;
-  font-size: 13px;
+  color: #071b3a;
+  font-size: 15px;
   font-weight: 600;
-  line-height: 18px;
-  text-align: center;
-  display: -webkit-box;
+  /* line-height: 22px; */
+  white-space: nowrap;
+  text-overflow: ellipsis;
   overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+}
+
+.category-count {
+  margin-top: 4px;
+  color: #7a8699;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.category-arrow {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #8a96aa;
+  font-size: 16px;
+  background: #f2f6fc;
+  transform: translateY(-50%);
+}
+
+.category-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 14px;
+}
+
+.category-tag--hot {
+  background: #fff0e8;
+  color: #ff6b00;
+}
+
+.category-tag--trending {
+  background: #eaf8f0;
+  color: #16a05d;
+}
+
+.trusted-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 12px;
+  padding: 10px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #eaf3ff 0%, #f7fbff 100%);
+  box-shadow: 0 8px 24px rgba(20, 40, 80, 0.06);
+}
+
+.trusted-icon {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #0b6bff;
+  font-size: 24px;
+  background: #ffffff;
+}
+
+.trusted-content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+}
+
+.trusted-content h2 {
+  margin: 0;
+  color: #071b3a;
+  font-size: 14px;
+  font-weight: 600;
+  /* line-height: 21px; */
+}
+
+.trusted-content p {
+  margin: 4px 0 0;
+  color: #6b7890;
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.trusted-bg-icon {
+  position: absolute;
+  right: 10px;
+  bottom: -18px;
+  color: rgba(11, 107, 255, 0.08);
+  font-size: 92px;
+}
+
+@media (max-width: 360px) {
+  .category-grid {
+    margin-right: 15px;
+    margin-left: 15px;
+  }
+
+  .category-item {
+    padding: 12px;
+  }
+
+  .category-icon {
+    flex-basis: 50px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .category-name {
+    font-size: 15px;
+  }
 }
 </style>

@@ -103,8 +103,8 @@ const emit = defineEmits<{
 }
 
 .result-card {
-  margin-top: 20px;
-  padding: 20px;
+  margin-top: 5px;
+  padding: 5px 12px;
 }
 
 .section-title {

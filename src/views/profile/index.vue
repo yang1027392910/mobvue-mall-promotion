@@ -1,34 +1,71 @@
 <script setup lang="ts">
 import { isLoggedIn } from "@@/utils/guest-access"
+import { Icon } from "@iconify/vue"
 import { useRouter } from "vue-router"
 import { useUserStore } from "@/pinia/stores/user"
 
-interface BenefitItem {
+interface QuickEntry {
   title: string
+  description: string
   icon: string
   color: string
+  path?: string
 }
 
-interface AccountItem {
+interface MenuItem {
   title: string
+  description: string
   icon: string
-  remark?: string
+  path?: string
 }
 
-const benefits: BenefitItem[] = [
-  { title: "Trending Products", icon: "home-o", color: "benefit-color-1" },
-  { title: "Profit Calculator", icon: "calculator-o", color: "benefit-color-2" },
-  { title: "Suppliers Directory", icon: "orders-o", color: "benefit-color-3" },
-  { title: "Logistics Info", icon: "label-o", color: "benefit-color-4" },
-  { title: "AI Content Generator", icon: "chat-o", color: "benefit-color-5" }
+const quickEntries: QuickEntry[] = [
+  {
+    title: "Hot Products",
+    description: "Find trending products",
+    icon: "fire-o",
+    color: "quick-blue",
+    path: "/"
+  },
+  {
+    title: "Supplier",
+    description: "Verified suppliers from China",
+    icon: "friends-o",
+    color: "quick-purple",
+    path: "/logistics-suppliers"
+  },
+  {
+    title: "Profit Calculator",
+    description: "Estimate product profit",
+    icon: "solar:calculator-bold",
+    color: "quick-cyan",
+    path: "/calculator?mode=weight&from=profile"
+  }
+  // {
+  //   title: "My Inquiries",
+  //   description: "Track supplier replies",
+  //   icon: "chat-o",
+  //   color: "quick-green"
+  // }
 ]
 
-const accountItems: AccountItem[] = [
-  { title: "My Orders", icon: "shopping-cart-o" },
-  { title: "My Favorites", icon: "star-o" },
-  { title: "Browsing History", icon: "orders-o" },
-  { title: "Coupons", icon: "label-o", remark: "2 Available" },
-  { title: "Invites & Rewards", icon: "gift-o" }
+const menuItems: MenuItem[] = [
+  {
+    title: "My Favorites",
+    description: "View and manage your saved products",
+    icon: "star-o",
+    path: "/favorites"
+  },
+  {
+    title: "Help Center",
+    description: "FAQs and platform guides",
+    icon: "question-o"
+  },
+  {
+    title: "Contact Support",
+    description: "We're here to help you",
+    icon: "service-o"
+  }
 ]
 
 const router = useRouter()
@@ -42,6 +79,10 @@ function handleLogin() {
 function handleLogout() {
   userStore.resetToken()
   router.replace("/login")
+}
+
+function handleNavigate(path?: string) {
+  if (path) router.push(path)
 }
 </script>
 
@@ -58,114 +99,84 @@ function handleLogout() {
     </div>
 
     <template v-else>
-      <div class="profile-banner">
-        <div class="banner-top">
+      <header class="profile-header">
+        <!-- <div class="header-toolbar">
           <div />
-          <van-icon name="setting-o" class="setting-icon" />
+          <div class="settings-button" role="button" tabindex="0" aria-label="Settings">
+            <van-icon name="setting-o" />
+          </div>
+        </div> -->
+
+        <div class="header-profile">
+          <div class="avatar">
+            S
+          </div>
+          <div class="header-copy">
+            <h1>Hello, Seller! 👋</h1>
+            <p>YiwuHub · Philippines Sourcing Platform</p>
+            <span>Member since: May 15, 2024</span>
+          </div>
         </div>
-        <div class="banner-body">
-          <div class="avatar-shell">
-            <div class="avatar-placeholder">
-              S
-            </div>
-          </div>
-          <div class="profile-info">
-            <div class="hello-text">
-              Hello, Seller! 👋
-            </div>
-            <div class="member-tag">
-              Premium Member
-            </div>
-            <div class="member-since">
-              Member since: May 15, 2024
-            </div>
-          </div>
-          <van-button class="upgrade-button" type="primary" round size="small">
-            Upgrade
-          </van-button>
-        </div>
-      </div>
+      </header>
 
-      <div class="profile-content">
-        <section class="card membership-card">
-          <div class="card-header">
-            <div class="card-title">
-              Membership Benefits
-            </div>
-          </div>
-          <div class="benefits-row">
-            <div v-for="item in benefits" :key="item.title" class="benefit-item">
-              <div class="benefit-icon" :class="item.color">
-                <van-icon :name="item.icon" />
-              </div>
-              <div class="benefit-title">
-                {{ item.title }}
-              </div>
-            </div>
+      <main class="profile-container profile-content">
+        <section class="quick-card">
+          <div
+            v-for="item in quickEntries"
+            :key="item.title"
+            class="quick-item"
+            role="button"
+            tabindex="0"
+            @click="handleNavigate(item.path)"
+          >
+            <span class="quick-icon" :class="item.color">
+              <Icon v-if="item.path?.startsWith('/calculator')" :icon="item.icon" />
+              <van-icon v-else :name="item.icon" />
+            </span>
+            <strong>{{ item.title }}</strong>
           </div>
         </section>
 
-        <section class="card account-card">
-          <div class="card-header">
-            <div class="card-title">
-              My Account
-            </div>
-          </div>
-          <div class="account-list">
-            <div v-for="item in accountItems" :key="item.title" class="account-item">
-              <div class="account-item-left">
-                <div class="account-icon">
-                  <van-icon :name="item.icon" />
-                </div>
-                <div class="account-label">
-                  {{ item.title }}
-                </div>
-              </div>
-              <div class="account-item-right">
-                <span v-if="item.remark" class="item-remark">{{ item.remark }}</span>
-                <van-icon name="arrow" class="arrow-icon" />
-              </div>
-            </div>
+        <section class="menu-card">
+          <div
+            v-for="item in menuItems"
+            :key="item.title"
+            class="menu-item"
+            role="button"
+            tabindex="0"
+            @click="handleNavigate(item.path)"
+          >
+            <span class="menu-icon">
+              <van-icon :name="item.icon" />
+            </span>
+            <span class="menu-copy">
+              <strong>{{ item.title }}</strong>
+              <small>{{ item.description }}</small>
+            </span>
+            <van-icon class="menu-arrow" name="arrow" />
           </div>
         </section>
 
-        <section class="card plan-card">
-          <div class="card-header plan-header">
-            <div>
-              <div class="card-title">
-                Membership Plan
-              </div>
-              <div class="plan-name">
-                Premium Member
-              </div>
-              <div class="plan-valid">
-                Valid until: 2025-08-15
-              </div>
-            </div>
-            <van-button class="manage-button" type="primary" round size="small">
-              Manage
-            </van-button>
-          </div>
-        </section>
-
-        <van-button class="logout-button" block round @click="handleLogout">
+        <div class="logout-card" role="button" tabindex="0" @click="handleLogout">
           <van-icon name="revoke" />
-          Log Out
-        </van-button>
-      </div>
+          <span>Log Out</span>
+        </div>
+      </main>
     </template>
   </div>
 </template>
 
 <style scoped>
 .profile-page {
-  min-height: 100vh;
   width: 100%;
-  max-width: 390px;
+  max-width: 375px;
+  min-height: 100%;
   margin: 0 auto;
-  background: #f7f9fc;
-  padding-bottom: 90px;
+  padding-bottom: 96px;
+  color: #111827;
+  background: linear-gradient(180deg, #f6f9ff 0%, #f8fafc 100%);
 }
+
 .profile-guest {
   min-height: calc(100vh - 90px);
   padding: 32px 18px;
@@ -176,6 +187,7 @@ function handleLogout() {
   gap: 14px;
   text-align: center;
 }
+
 .profile-guest-icon {
   width: 60px;
   height: 60px;
@@ -184,246 +196,310 @@ function handleLogout() {
   place-items: center;
   color: #1677ff;
   font-size: 32px;
+  line-height: 1;
   background: #eef6ff;
 }
+
 .profile-guest-title {
-  color: #0f172a;
+  color: #111827;
   font-size: 16px;
   font-weight: 700;
+  line-height: 22px;
 }
+
 .profile-guest-button {
   min-width: 120px;
   height: 42px;
+  font-size: 14px;
   font-weight: 700;
+  line-height: 20px;
 }
-.profile-banner {
+
+.profile-header {
   position: relative;
-  z-index: 1;
-  height: 200px;
-  padding: 18px 18px 24px;
-  color: #ffffff;
+  height: 210px;
+  padding: 28px 20px;
+  overflow: hidden;
   border-bottom-left-radius: 28px;
   border-bottom-right-radius: 28px;
-  background-image: url("../../assets/profile/bc.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1677ff 0%, #7c3aed 100%);
+  box-shadow: 0 16px 32px rgba(37, 99, 255, 0.22);
 }
-.banner-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+.profile-header::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 42%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 34px);
+  content: "";
+  opacity: 0.45;
 }
-.setting-icon {
-  font-size: 22px;
-  color: rgba(255, 255, 255, 0.9);
-}
-.banner-body {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 24px;
-  gap: 12px;
-}
-.avatar-shell {
-  width: 72px;
-  height: 72px;
+
+.profile-header::after {
+  position: absolute;
+  right: -42px;
+  bottom: 18px;
+  width: 180px;
+  height: 76px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
+  content: "";
+  opacity: 0.42;
+  transform: rotate(-14deg);
+}
+
+.header-toolbar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  flex-shrink: 0;
+  appearance: none;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 21px;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-tap-highlight-color: transparent;
 }
-.avatar-placeholder {
-  width: 54px;
-  height: 54px;
+
+.header-profile {
+  margin-top: 15px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border: 3px solid rgba(255, 255, 255, 0.52);
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.18));
-  color: #0f172a;
-  font-weight: 700;
   display: grid;
   place-items: center;
+  flex: 0 0 auto;
+  color: #1677ff;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
 }
-.profile-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+
+.header-copy {
   min-width: 0;
 }
-.hello-text {
-  font-size: 18px;
-  font-weight: 700;
+
+.header-copy h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 26px;
 }
-.member-tag {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.92);
-}
-.member-since {
+
+.header-copy p {
+  margin: 5px 0 0;
+  color: rgba(255, 255, 255, 0.86);
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.72);
+  font-weight: 600;
+  line-height: 17px;
 }
-.upgrade-button {
-  min-width: 86px;
+
+.header-copy span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  line-height: 17px;
 }
+
+.profile-container,
 .profile-content {
   position: relative;
   z-index: 2;
-  margin-top: -40px;
-  padding: 0 10px;
 }
-.card {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 14px 28px rgba(16, 24, 40, 0.06);
-  padding: 18px;
-  margin-bottom: 16px;
-}
-.card-header {
-  margin-bottom: 14px;
-}
-.card-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #101828;
-}
-.benefits-row {
-  display: flex;
-  gap: 8px;
-  justify-content: space-between;
+
+.quick-card {
+  margin: -48px 10px 10px;
+  padding: 18px 5px;
+  border-radius: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   overflow: hidden;
-  padding-bottom: 4px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
-.benefit-item {
-  flex: 1;
+
+.quick-item {
+  position: relative;
   min-width: 0;
-  max-width: 66px;
-  border-radius: 16px;
-  background: #f7f9fc;
-  padding: 14px 2px;
+  /* min-height: 104px; */
   display: flex;
   flex-direction: column;
-  gap: 8px;
   align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
   text-align: center;
+  -webkit-tap-highlight-color: transparent;
 }
-.benefit-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
+
+.quick-item + .quick-item::before {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  width: 1px;
+  background: #eef2f7;
+  content: "";
+}
+
+.quick-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
-  font-size: 16px;
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1;
 }
-.benefit-color-1 {
-  background: rgba(22, 119, 255, 0.16);
-  color: #1677ff;
+
+.quick-blue {
+  background: linear-gradient(135deg, #36a3ff, #1677ff);
 }
-.benefit-color-2 {
-  background: rgba(124, 58, 237, 0.16);
-  color: #7c3aed;
+
+.quick-purple {
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
 }
-.benefit-color-3 {
-  background: rgba(14, 165, 233, 0.16);
-  color: #0ea5e9;
+
+.quick-cyan {
+  background: linear-gradient(135deg, #22d3ee, #0ea5e9);
 }
-.benefit-color-4 {
-  background: rgba(20, 184, 166, 0.16);
-  color: #14b8a6;
+
+.quick-green {
+  background: linear-gradient(135deg, #5eead4, #14b8a6);
 }
-.benefit-color-5 {
-  background: rgba(249, 115, 22, 0.16);
-  color: #f97316;
-}
-.benefit-title {
+
+.quick-item strong {
+  width: 100%;
+  color: #2a3a5b;
   font-size: 11px;
-  line-height: 1.35;
-  color: #334155;
-  display: -webkit-box;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-weight: 600;
+  line-height: 15px;
+  margin-top: 5px;
   overflow: hidden;
+  /* text-overflow: ellipsis; */
+  white-space: nowrap;
 }
-.account-list {
-  display: flex;
-  flex-direction: column;
+
+.quick-item small {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
 }
-.account-item {
+
+.menu-card {
+  margin: 0 16px;
+  padding: 8px 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.menu-item {
+  width: 100%;
+  height: 72px;
+  padding: 0 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #f1f5f9;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
 }
-.account-item:last-child {
-  border-bottom: none;
+
+.menu-item + .menu-item {
+  border-top: 1px solid #eef2f7;
 }
-.account-item-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.account-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  background: #eff6ff;
+
+.menu-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
+  flex: 0 0 auto;
   color: #1677ff;
+  font-size: 18px;
+  line-height: 1;
+  background: #eef6ff;
 }
-.account-label {
-  font-size: 14px;
-  color: #0f172a;
+
+.menu-copy {
+  min-width: 0;
+  flex: 1;
 }
-.account-item-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.item-remark {
+
+.menu-copy strong {
+  display: block;
+  color: #111827;
   font-size: 12px;
-  color: #475569;
+  font-weight: 500;
+  line-height: 20px;
 }
-.arrow-icon {
-  color: #c7d2fe;
+
+.menu-copy small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
 }
-.plan-header {
+
+.menu-arrow {
+  flex: 0 0 auto;
+  color: #94a3b8;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.logout-card {
+  height: 52px;
+  margin: 14px 16px 0;
+  border-radius: 18px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.plan-name {
-  margin-top: 6px;
-  font-size: 16px;
-  font-weight: 700;
-  color: #101828;
-}
-.plan-valid {
-  margin-top: 4px;
-  font-size: 13px;
-  color: #64748b;
-}
-.manage-button {
-  min-width: 96px;
-}
-.logout-button {
-  height: 46px;
-  border: 0;
-  color: #ef4444;
-  font-size: 15px;
-  font-weight: 700;
-  background: #ffffff;
-  box-shadow: 0 14px 28px rgba(16, 24, 40, 0.06);
-}
-.logout-button :deep(.van-button__content) {
+  justify-content: center;
   gap: 8px;
+  color: #ff3b5c;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  -webkit-tap-highlight-color: transparent;
 }
-@media (max-width: 390px) {
-  .profile-page {
-    padding-bottom: 98px;
-  }
+
+.logout-card .van-icon {
+  font-size: 19px;
+  line-height: 1;
 }
 </style>

@@ -1,10 +1,16 @@
 <script setup lang="ts">
+import type { RawBannerItem } from "@@/apis/banner/type"
 import type { HotProductType, RawHotProductItem } from "@@/apis/hotProduct/type"
+import { getBannerListApi } from "@@/apis/banner"
 import { getHotProductListApi } from "@@/apis/hotProduct"
 import { Icon } from "@iconify/vue"
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useRouter } from "vue-router"
+import homeBanner from "@/assets/home/banner.png"
 import homeLogo from "@/assets/home/logo.png"
+import rankNo1 from "@/assets/home/no_1.png"
+import rankNo2 from "@/assets/home/no_2.png"
+import rankNo3 from "@/assets/home/no_3.png"
 
 interface ProductItem {
   id: number
@@ -16,11 +22,30 @@ interface ProductItem {
   profit: string
 }
 
+interface BannerItem {
+  id: number | string
+  title: string
+  image: string
+  jumpType: BannerJumpType
+  jumpValue: string
+}
+
+type BannerJumpType = "product" | "category" | "link" | "none"
+
 const activeTab = ref<HotProductType>(1)
 const router = useRouter()
 const searchValue = ref("")
 const loading = ref(false)
 const errorText = ref("")
+const banners = ref<BannerItem[]>([
+  {
+    id: "local-banner",
+    title: "YiwuHub banner",
+    image: homeBanner,
+    jumpType: "none",
+    jumpValue: ""
+  }
+])
 const homeHeaderRef = ref<HTMLElement | null>(null)
 const tabsOffsetTop = ref(0)
 let headerResizeObserver: ResizeObserver | null = null
@@ -47,6 +72,7 @@ const tabTitleMap: Record<HotProductType, string> = {
 }
 
 const products = ref<ProductItem[]>([])
+const rankBadgeImages = [rankNo1, rankNo2, rankNo3]
 
 const filteredProducts = computed(() => {
   const keyword = searchValue.value.trim().toLowerCase()
@@ -68,7 +94,67 @@ function formatMoney(value: number | string | undefined) {
 function getProductImage(image?: string) {
   if (!image) return ""
   if (/^https?:\/\//.test(image)) return image
-  return `http://localhost:3000${image.startsWith("/") ? image : `/${image}`}`
+
+  const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || ""
+  return `${imageBaseUrl.replace(/\/$/, "")}/${image.replace(/^\//, "")}`
+}
+
+function getRankBadgeImage(index: number) {
+  return rankBadgeImages[index] || ""
+}
+
+function getAssetUrl(url?: string) {
+  if (!url) return ""
+  if (/^https?:\/\//.test(url)) return url
+
+  const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || ""
+  return `${imageBaseUrl.replace(/\/$/, "")}/${url.replace(/^\//, "")}`
+}
+
+function getBannerDataList(data: RawBannerItem[] | BannerListLikeData) {
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data.data)) return data.data
+  if (Array.isArray(data.list)) return data.list
+  if (Array.isArray(data.records)) return data.records
+  if (Array.isArray(data.rows)) return data.rows
+  return Array.isArray(data.items) ? data.items : []
+}
+
+interface BannerListLikeData {
+  data?: RawBannerItem[]
+  list?: RawBannerItem[]
+  records?: RawBannerItem[]
+  rows?: RawBannerItem[]
+  items?: RawBannerItem[]
+}
+
+function normalizeBanner(item: RawBannerItem, index: number): BannerItem {
+  return {
+    id: item.id ?? index,
+    title: String(item.title ?? item.name ?? `Banner ${index + 1}`),
+    image: getAssetUrl(String(item.image ?? item.imageUrl ?? item.bannerUrl ?? item.picUrl ?? item.cover ?? item.url ?? "")),
+    jumpType: normalizeBannerJumpType(item.jumpType ?? item.targetType ?? item.type),
+    jumpValue: getBannerJumpValue(item)
+  }
+}
+
+function normalizeBannerJumpType(value: string | number | undefined): BannerJumpType {
+  const normalizedValue = String(value ?? "").trim().toLowerCase()
+
+  if (["1", "product", "goods", "商品"].includes(normalizedValue)) return "product"
+  if (["2", "category", "分类"].includes(normalizedValue)) return "category"
+  if (["3", "link", "url", "链接"].includes(normalizedValue)) return "link"
+  return "none"
+}
+
+function getBannerJumpValue(item: RawBannerItem) {
+  const value = item.jumpValue ?? item.targetValue ?? item.value
+
+  if (item.productId !== undefined) return String(item.productId)
+  if (item.categoryId !== undefined) return String(item.categoryId)
+  if (value !== undefined) return String(value)
+
+  return String(item.linkUrl ?? item.link ?? item.path ?? "")
 }
 
 function getHotProductDataList(data: RawHotProductItem[] | {
@@ -105,12 +191,17 @@ function normalizeHotProduct(item: RawHotProductItem, index: number): ProductIte
 }
 
 function handleProductClick(product: ProductItem) {
+  console.log(product, "product222")
   router.push({
     path: "/product-card",
     query: {
       id: product.id
     }
   })
+}
+
+function handleCustomerServiceClick() {
+  router.push("/procurement-support")
 }
 
 async function getHotProductList() {
@@ -128,6 +219,58 @@ async function getHotProductList() {
   }
 }
 
+async function getBannerList() {
+  try {
+    const { data } = await getBannerListApi({
+      scene: "home"
+    })
+    const apiBanners = getBannerDataList(data)
+      .filter(item => !item.scene || item.scene === "home")
+      .filter(item => item.status === undefined || Number(item.status) === 1)
+      .sort((a, b) => toNumber(a.sort) - toNumber(b.sort))
+      .map(normalizeBanner)
+      .filter(item => item.image)
+
+    if (apiBanners.length) {
+      banners.value = apiBanners
+    }
+  } catch {
+    // Keep the local banner as fallback when the banner API is unavailable.
+  }
+}
+
+function handleBannerClick(banner: BannerItem) {
+  console.log(banner, "banner4444")
+  if (banner.jumpType === "none" || !banner.jumpValue) return
+
+  if (banner.jumpType === "product") {
+    router.push({
+      path: "/product-card",
+      query: {
+        id: banner.jumpValue
+      }
+    })
+    return
+  }
+
+  if (banner.jumpType === "category") {
+    router.push({
+      path: "/product-list",
+      query: {
+        categoryId: banner.jumpValue
+      }
+    })
+    return
+  }
+
+  if (/^https?:\/\//.test(banner.jumpValue)) {
+    window.location.href = banner.jumpValue
+    return
+  }
+
+  router.push(banner.jumpValue)
+}
+
 function updateTabsOffsetTop() {
   tabsOffsetTop.value = homeHeaderRef.value?.offsetHeight || 0
 }
@@ -143,6 +286,7 @@ async function setupStickyTabsOffset() {
 }
 
 onMounted(() => {
+  getBannerList()
   getHotProductList()
   setupStickyTabsOffset()
 })
@@ -162,27 +306,27 @@ watch(activeTab, () => {
       <div class="home-title-row">
         <img class="home-logo" :src="homeLogo" alt="YiwuHub">
         <div class="home-actions">
-          <button class="points-button" type="button">
-            <span class="points-icon">
-              <Icon icon="solar:dollar-bold" />
-            </span>
-            <span class="points-value">1250</span>
-            <Icon icon="mingcute:right-line" class="points-arrow" />
-          </button>
-          <button class="notification-button" type="button">
-            <Icon icon="mynaui:bell" class="home-icon" />
-            <span class="notification-badge">3</span>
+          <button class="notification-button" type="button" aria-label="Contact customer service" @click="handleCustomerServiceClick">
+            <Icon icon="mdi:customer-service" class="home-icon" />
           </button>
         </div>
       </div>
-      <!-- <van-search
-        v-model:value="searchValue"
-        placeholder="Search products or keywords"
-        shape="round"
-        background="#FFF"
-        clearable
-        class="home-search"
-      /> -->
+    </div>
+
+    <div class="home-banner">
+      <van-swipe
+        class="home-banner-swipe"
+        :autoplay="3500"
+        indicator-color="#ffffff"
+      >
+        <van-swipe-item
+          v-for="banner in banners"
+          :key="banner.id"
+          @click="handleBannerClick(banner)"
+        >
+          <img :src="banner.image" :alt="banner.title">
+        </van-swipe-item>
+      </van-swipe>
     </div>
 
     <van-tabs
@@ -235,8 +379,15 @@ watch(activeTab, () => {
         >
           <div class="product-card-left">
             <div class="product-image-wrap">
-              <img class="product-image" :src="item.image" :alt="item.name">
-              <span class="product-rank">#{{ index + 1 }}</span>
+              <div class="product-image-frame">
+                <img class="product-image" :src="item.image" :alt="item.name">
+              </div>
+              <img
+                v-if="getRankBadgeImage(index)"
+                class="product-rank"
+                :src="getRankBadgeImage(index)"
+                :alt="`No. ${index + 1}`"
+              >
             </div>
           </div>
           <div class="product-card-right">
@@ -310,6 +461,7 @@ watch(activeTab, () => {
   padding: 0;
   font: inherit;
   background: transparent;
+  color: #64748b;
 }
 .points-button {
   display: inline-flex;
@@ -351,7 +503,7 @@ watch(activeTab, () => {
   height: 36px;
 }
 .home-icon {
-  color: #111827;
+  color: #1677ff;
   font-size: 23px;
 }
 .notification-badge {
@@ -374,6 +526,44 @@ watch(activeTab, () => {
 }
 .home-search {
   width: 100%;
+}
+.home-banner {
+  margin: 8px 0 0;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #eaf1ff;
+  box-shadow: 0 8px 24px rgba(22, 119, 255, 0.08);
+}
+.home-banner-swipe {
+  width: 100%;
+  aspect-ratio: 343 / 128;
+}
+.home-banner :deep(.van-swipe__track),
+.home-banner :deep(.van-swipe-item) {
+  height: 100%;
+}
+.home-banner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.home-banner :deep(.van-swipe__indicators) {
+  bottom: 10px;
+}
+.home-banner :deep(.van-swipe__indicator) {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(7, 27, 58, 0.16);
+  opacity: 1;
+  box-shadow: 0 2px 6px rgba(7, 27, 58, 0.18);
+}
+.home-banner :deep(.van-swipe__indicator--active) {
+  width: 20px;
+  background: #1677ff;
+  border-color: rgba(255, 255, 255, 0.85);
 }
 .home-tabs {
   position: sticky;
@@ -402,7 +592,7 @@ watch(activeTab, () => {
 .home-tabs :deep(.van-tabs__nav) {
   display: flex;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 5px 0px;
   border-radius: 14px;
   background: #ffffff;
 }
@@ -434,11 +624,14 @@ watch(activeTab, () => {
 .home-tabs :deep(.van-tab--active) .ranking-tab__icon {
   color: #1677ff;
 }
-.home-tabs :deep(.van-tabs__line) {
+/* .home-tabs :deep(.van-tabs__line) {
   width: 24px;
-  height: 3px;
+  height: 2px;
   border-radius: 999px;
   background: #1677ff;
+} */
+.home-tabs :deep(.van-tabs__line) {
+  display: none;
 }
 .home-tabs :deep(.van-tabs__wrap::after),
 .home-tabs :deep(.van-tabs__nav::after) {
@@ -460,7 +653,7 @@ watch(activeTab, () => {
   align-items: flex-start;
   gap: 12px;
   padding: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   border-radius: 18px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(22, 119, 255, 0.06);
@@ -477,6 +670,12 @@ watch(activeTab, () => {
   position: relative;
   width: 116px;
   height: 116px;
+  overflow: visible;
+}
+
+.product-image-frame {
+  width: 100%;
+  height: 100%;
   border-radius: 14px;
   background: #f5f8ff;
   overflow: hidden;
@@ -489,19 +688,13 @@ watch(activeTab, () => {
 }
 .product-rank {
   position: absolute;
-  top: 8px;
-  left: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border-radius: 50%;
-  background: #1677ff;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
+  top: -15px;
+  left: -10px;
+  display: block;
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  pointer-events: none;
 }
 .product-card-right {
   flex: 1;

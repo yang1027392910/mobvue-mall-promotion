@@ -56,7 +56,9 @@ function toNumber(value: number | string | undefined, fallback = 0) {
 function getProductImage(image?: string) {
   if (!image) return ""
   if (/^https?:\/\//.test(image)) return image
-  return `http://localhost:3000${image.startsWith("/") ? image : `/${image}`}`
+
+  const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || ""
+  return `${imageBaseUrl.replace(/\/$/, "")}/${image.replace(/^\//, "")}`
 }
 
 function getProductDataList(data: RawProductItem[] | { list?: RawProductItem[] }) {
