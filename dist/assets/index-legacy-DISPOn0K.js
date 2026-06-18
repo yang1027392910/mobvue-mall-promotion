@@ -1,1 +1,0 @@
-System.register(["./index-legacy-B7w_vpnS.js"],function(t,e){"use strict";var r;return{setters:[t=>{r=t.r}],execute:function(){t("g",function(t){return r({url:"h5/product/list",method:"get",params:t})})}}});
