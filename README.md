@@ -187,7 +187,7 @@ bun run test
 
 🧩 [Layout System](./src/layout) - Configurable
 
-🔒 Permission Control [Page Level](./src/router/guard.ts), [Button Level](./src/pages/demo/permission.vue)
+🔒 Permission Control [Page Level](./src/router/guard.ts)
 
 🌗 Theme Mode [Dark Mode](./src/common/assets/styles/variables.css)
 

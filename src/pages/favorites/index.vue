@@ -3,6 +3,7 @@ import type { RawFavoriteItem } from "@@/apis/favorite/type"
 import type { ProductCardData } from "@/components/ProductCard/index.vue"
 import { favoriteClickApi, getFavoriteListApi } from "@@/apis/favorite"
 import { isLoggedIn } from "@@/utils/guest-access"
+import { Icon } from "@iconify/vue"
 import ProductCard from "@/components/ProductCard/index.vue"
 
 const router = useRouter()
@@ -87,6 +88,10 @@ function handleLogin() {
   router.push("/login")
 }
 
+function handleBackHome() {
+  router.push("/")
+}
+
 onMounted(() => {
   getFavoriteList()
 })
@@ -99,6 +104,9 @@ watch(loggedIn, (value) => {
 <template>
   <div class="favorites-page">
     <header class="favorites-topbar">
+      <button class="back-home-button" type="button" aria-label="Back to home" @click="handleBackHome">
+        <Icon icon="mingcute:left-line" />
+      </button>
       <div class="favorites-topbar-title">
         Favorites
       </div>
@@ -176,6 +184,21 @@ watch(loggedIn, (value) => {
   background: #ffffff;
   box-shadow: 0 1px 8px rgba(15, 23, 42, 0.06);
   transform: translateX(-50%);
+}
+
+.back-home-button {
+  position: absolute;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 10px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  color: #111827;
+  font-size: 22px;
+  background: #ffffff;
 }
 
 .favorites-topbar-title {

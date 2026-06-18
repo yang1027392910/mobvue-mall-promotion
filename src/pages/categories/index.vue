@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CategoryItem, RawCategoryItem } from "@@/apis/categories/type"
 import { getCategoryListApi } from "@@/apis/categories"
+import { Icon } from "@iconify/vue"
 import { useRouter } from "vue-router"
 import bcRightImage from "@/assets/categories/bc-r.png"
 
@@ -49,6 +50,10 @@ function handleCategoryClick(category: CategoryItem) {
   })
 }
 
+function handleBackHome() {
+  router.push("/")
+}
+
 onMounted(() => {
   getCategoryList()
 })
@@ -56,6 +61,15 @@ onMounted(() => {
 
 <template>
   <div class="categories-page">
+    <header class="categories-topbar">
+      <button class="back-home-button" type="button" aria-label="Back to home" @click="handleBackHome">
+        <Icon icon="mingcute:left-line" />
+      </button>
+      <div class="categories-topbar-title">
+        Categories
+      </div>
+    </header>
+
     <div class="categories-header">
       <div class="categories-heading-copy">
         <h1>Browse Categories</h1>
@@ -141,6 +155,41 @@ onMounted(() => {
   /* min-height: 100vh; */
   padding: 0 0 96px;
   background: #f6f8fc;
+}
+
+.categories-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  background: #f6f8fc;
+}
+
+.back-home-button {
+  position: absolute;
+  left: 12px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 10px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  color: #071b3a;
+  font-size: 22px;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(20, 40, 80, 0.08);
+}
+
+.categories-topbar-title {
+  color: #071b3a;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 40px;
 }
 
 .categories-header {

@@ -59,18 +59,35 @@ const menuItems: MenuItem[] = [
   {
     title: "Help Center",
     description: "FAQs and platform guides",
-    icon: "question-o"
+    icon: "question-o",
+    path: "/procurement-support"
   },
   {
-    title: "Contact Support",
+    title: "logistics Support",
     description: "We're here to help you",
-    icon: "service-o"
+    icon: "service-o",
+    path: "/logistics-suppliers"
   }
 ]
 
 const router = useRouter()
 const userStore = useUserStore()
 const loggedIn = computed(() => isLoggedIn())
+const userEmail = computed(() => userStore.email || (userStore.username.includes("@") ? userStore.username : ""))
+const displayEmail = computed(() => maskEmail(userEmail.value))
+const avatarInitial = computed(() => getEmailInitial(userEmail.value))
+
+function maskEmail(email: string) {
+  const [prefix, domain] = email.split("@")
+  if (!prefix || !domain) return "yiwu***@hub.com"
+
+  const visiblePrefix = prefix.length < 6 ? prefix.slice(0, 2) : prefix.slice(0, 6)
+  return `${visiblePrefix}***@${domain}`
+}
+
+function getEmailInitial(email: string) {
+  return (email.trim().charAt(0) || "Y").toUpperCase()
+}
 
 function handleLogin() {
   router.push("/login")
@@ -109,12 +126,12 @@ function handleNavigate(path?: string) {
 
         <div class="header-profile">
           <div class="avatar">
-            S
+            {{ avatarInitial }}
           </div>
           <div class="header-copy">
-            <h1>Hello, Seller! 👋</h1>
-            <p>YiwuHub · Philippines Sourcing Platform</p>
-            <span>Member since: May 15, 2024</span>
+            <h1>Hello! 👋</h1>
+            <p>{{ displayEmail }}</p>
+            <span>Find products from China easily and confidently.</span>
           </div>
         </div>
       </header>
@@ -158,7 +175,7 @@ function handleNavigate(path?: string) {
         </section>
 
         <div class="logout-card" role="button" tabindex="0" @click="handleLogout">
-          <van-icon name="revoke" />
+          <Icon class="logout-icon" icon="hugeicons:logout-03" />
           <span>Log Out</span>
         </div>
       </main>
@@ -370,7 +387,7 @@ function handleNavigate(path?: string) {
 .quick-icon {
   width: 40px;
   height: 40px;
-  border-radius: 16px;
+  border-radius: 12px;
   display: grid;
   place-items: center;
   color: #ffffff;
@@ -414,9 +431,9 @@ function handleNavigate(path?: string) {
 }
 
 .menu-card {
-  margin: 0 16px;
+  margin: 0 12px;
   padding: 8px 0;
-  border-radius: 20px;
+  border-radius: 12px;
   overflow: hidden;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
@@ -424,8 +441,8 @@ function handleNavigate(path?: string) {
 
 .menu-item {
   width: 100%;
-  height: 72px;
-  padding: 0 10px;
+  /* height: 60px; */
+  padding: 12px 15px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -481,25 +498,35 @@ function handleNavigate(path?: string) {
 }
 
 .logout-card {
-  height: 52px;
-  margin: 14px 16px 0;
-  border-radius: 18px;
+  height: 50px;
+  margin: 14px 12px 0;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  color: #ff3b5c;
+  gap: 12px;
+  color: #ff5a5f;
   cursor: pointer;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 20px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  transition: all 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
-.logout-card .van-icon {
-  font-size: 19px;
+.logout-card:hover,
+.logout-card:active {
+  background: #fff5f6;
+  transform: scale(0.98);
+}
+
+.logout-icon {
+  width: 20px;
+  height: 20px;
+  color: #ff5a5f;
+  /* font-size: 24px; */
   line-height: 1;
 }
 </style>

@@ -1,4 +1,5 @@
 import { getCurrentUserApi } from "@@/apis/users"
+import { CacheKey } from "@@/constants/cache-key"
 import { setToken as _setToken, getToken, removeToken } from "@@/utils/cache/cookies"
 import { pinia } from "@/pinia"
 
@@ -11,16 +12,40 @@ interface UserInfo {
   roles?: string[]
 }
 
+function getStoredUserInfo(): UserInfo {
+  try {
+    const value = localStorage.getItem(CacheKey.USER_INFO)
+    return value ? JSON.parse(value) : {}
+  } catch {
+    return {}
+  }
+}
+
+function setStoredUserInfo(user: UserInfo) {
+  localStorage.setItem(CacheKey.USER_INFO, JSON.stringify(user))
+}
+
+function removeStoredUserInfo() {
+  localStorage.removeItem(CacheKey.USER_INFO)
+}
+
 export const useUserStore = defineStore("user", () => {
+  const storedUserInfo = getStoredUserInfo()
+
   const token = ref<string>(getToken() || "")
 
-  const roles = ref<string[]>([])
+  const roles = ref<string[]>(storedUserInfo.roles?.length ? storedUserInfo.roles : (storedUserInfo.role ? [storedUserInfo.role] : []))
 
-  const username = ref<string>("")
+  const username = ref<string>(storedUserInfo.username || storedUserInfo.name || storedUserInfo.nickname || storedUserInfo.email || "")
+  const email = ref<string>(storedUserInfo.email || "")
 
-  const setUserInfo = (user: UserInfo = {}) => {
+  const setUserInfo = (user: UserInfo = {}, shouldStore = true) => {
     username.value = user.username || user.name || user.nickname || user.email || "h5"
+    email.value = user.email || ""
     roles.value = user.roles?.length ? user.roles : (user.role ? [user.role] : ["h5"])
+    if (shouldStore) {
+      setStoredUserInfo(user)
+    }
   }
 
   const setUserInfoFromToken = (value: string) => {
@@ -68,12 +93,14 @@ export const useUserStore = defineStore("user", () => {
   // 重置 Token
   const resetToken = () => {
     removeToken()
+    removeStoredUserInfo()
     token.value = ""
     roles.value = []
     username.value = ""
+    email.value = ""
   }
 
-  return { token, roles, username, setToken, getInfo, changeRoles, resetToken }
+  return { token, roles, username, email, setToken, getInfo, changeRoles, resetToken }
 })
 
 /**

@@ -16,11 +16,8 @@ const showFilterPopup = ref(false)
 const loading = ref(false)
 const errorText = ref("")
 
-const DEFAULT_CATEGORY_ID = 5
-const DEFAULT_CATEGORY_NAME = "美妆列表"
-
-const categoryId = computed(() => Number(route.query.categoryId || DEFAULT_CATEGORY_ID))
-const categoryName = computed(() => String(route.query.categoryName || DEFAULT_CATEGORY_NAME))
+const categoryId = computed(() => route.query.categoryId ? Number(route.query.categoryId) : undefined)
+const categoryName = computed(() => String(route.query.categoryName || "All Products"))
 const products = ref<ProductItem[]>([])
 
 const tabs: Array<{ label: string, value: FilterTab }> = [
@@ -84,7 +81,7 @@ async function getProductList() {
   errorText.value = ""
 
   try {
-    const { data } = await getProductListApi({ categoryId: categoryId.value })
+    const { data } = await getProductListApi(categoryId.value ? { categoryId: categoryId.value } : {})
     products.value = getProductDataList(data).map(normalizeProduct).filter(item => item.id && item.name)
   } catch (error) {
     errorText.value = error instanceof Error ? error.message : "Failed to load products"
@@ -282,7 +279,7 @@ watch(categoryId, () => {
 }
 
 .product-list-content {
-  padding: 16px;
+  padding: 16px 12px;
 }
 
 .product-loading {

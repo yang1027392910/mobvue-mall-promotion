@@ -187,7 +187,7 @@ bun run test
 
 🧩 [布局系统](./src/layout) - 配置化的
 
-🔒 权限控制 [页面级](./src/router/guard.ts)、[按钮级](./src/pages/demo/permission.vue)
+🔒 权限控制 [页面级](./src/router/guard.ts)
 
 🌗 主题模式 [Dark Mode](./src/common/assets/styles/variables.css)
 

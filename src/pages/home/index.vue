@@ -37,6 +37,7 @@ const router = useRouter()
 const searchValue = ref("")
 const loading = ref(false)
 const errorText = ref("")
+const showAllProducts = ref(false)
 const banners = ref<BannerItem[]>([
   {
     id: "local-banner",
@@ -81,6 +82,7 @@ const filteredProducts = computed(() => {
   }
   return products.value.filter(item => item.name.toLowerCase().includes(keyword))
 })
+const visibleProducts = computed(() => showAllProducts.value ? filteredProducts.value : filteredProducts.value.slice(0, 3))
 
 function toNumber(value: number | string | undefined, fallback = 0) {
   const numberValue = Number(value)
@@ -204,6 +206,10 @@ function handleCustomerServiceClick() {
   router.push("/procurement-support")
 }
 
+function handleToggleProducts() {
+  showAllProducts.value = !showAllProducts.value
+}
+
 async function getHotProductList() {
   loading.value = true
   errorText.value = ""
@@ -296,6 +302,7 @@ onBeforeUnmount(() => {
 })
 
 watch(activeTab, () => {
+  showAllProducts.value = false
   getHotProductList()
 })
 </script>
@@ -329,28 +336,22 @@ watch(activeTab, () => {
       </van-swipe>
     </div>
 
-    <van-tabs
-      v-model:active="activeTab"
-      class="home-tabs"
-      color="#1677ff"
-      inactive-color="#9aa3b8"
-      line-width="28"
-      swipeable
-    >
-      <van-tab
+    <div class="home-tabs" role="tablist" aria-label="Product ranking filters">
+      <div
         v-for="tab in tabs"
-        :title="tab.title"
-        :name="tab.name"
         :key="tab.name"
+        class="home-tab"
+        :class="{ 'home-tab--active': activeTab === tab.name }"
+        role="tab"
+        :aria-selected="activeTab === tab.name"
+        @click="activeTab = tab.name"
       >
-        <template #title>
-          <span class="ranking-tab">
-            <Icon class="ranking-tab__icon" :icon="tabIconMap[tab.name]" />
-            <span>{{ tabTitleMap[tab.name] }}</span>
-          </span>
-        </template>
-      </van-tab>
-    </van-tabs>
+        <span class="ranking-tab">
+          <Icon class="ranking-tab__icon" :icon="tabIconMap[tab.name]" />
+          <span>{{ tabTitleMap[tab.name] }}</span>
+        </span>
+      </div>
+    </div>
 
     <div class="product-list">
       <van-loading v-if="loading" class="home-loading" color="#1677ff" />
@@ -372,7 +373,7 @@ watch(activeTab, () => {
 
       <template v-else>
         <div
-          v-for="(item, index) in filteredProducts"
+          v-for="(item, index) in visibleProducts"
           :key="item.id"
           class="product-card"
           @click="handleProductClick(item)"
@@ -416,6 +417,15 @@ watch(activeTab, () => {
             </div>
           </div>
         </div>
+        <button
+          v-if="filteredProducts.length > 3"
+          class="view-all-products"
+          type="button"
+          @click="handleToggleProducts"
+        >
+          <span>{{ showAllProducts ? "Show Less" : "View All" }}</span>
+          <Icon :icon="showAllProducts ? 'mingcute:up-line' : 'mingcute:down-line'" />
+        </button>
       </template>
     </div>
   </div>
@@ -424,15 +434,16 @@ watch(activeTab, () => {
 <style scoped>
 .page-home {
   min-height: calc(100vh - 10px);
-  padding: 0 16px 88px;
+  padding: 0 12px 88px;
+  overflow-x: hidden;
   background: #f7faff;
 }
 .home-header {
   position: sticky;
   top: 0;
   z-index: 20;
-  margin: 0 -16px;
-  padding: 18px 16px 8px;
+  margin: 0 -12px;
+  padding: 18px 12px 8px;
   background: #f7faff;
 }
 .home-title-row {
@@ -455,46 +466,12 @@ watch(activeTab, () => {
   gap: 12px;
   flex-shrink: 0;
 }
-.points-button,
 .notification-button {
   border: 0;
   padding: 0;
   font: inherit;
   background: transparent;
   color: #64748b;
-}
-.points-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 12px 0 10px;
-  border-radius: 18px;
-  color: #1f2937;
-  background: #fff4df;
-  box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.14);
-}
-.points-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  color: #ffffff;
-  font-size: 14px;
-  background: linear-gradient(180deg, #ffc24b 0%, #f59e0b 100%);
-}
-.points-value {
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-}
-.points-arrow {
-  color: #d08a12;
-  font-size: 14px;
-}
-.notification-button {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -503,29 +480,8 @@ watch(activeTab, () => {
   height: 36px;
 }
 .home-icon {
-  color: #1677ff;
   font-size: 23px;
-}
-.notification-badge {
-  position: absolute;
-  top: 4px;
-  right: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 14px;
-  height: 14px;
-  padding: 0 3px;
-  border: 2px solid #ffffff;
-  border-radius: 999px;
-  color: #ffffff;
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1;
-  background: #ef233c;
-}
-.home-search {
-  width: 100%;
+  color: #1677ff;
 }
 .home-banner {
   margin: 8px 0 0;
@@ -569,73 +525,65 @@ watch(activeTab, () => {
   position: sticky;
   top: calc(var(--home-tabs-top) - 1px);
   z-index: 19;
-  margin-bottom: 16px;
-  background: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  gap: 0;
+  margin: 12px 0 16px;
+  padding: 5px 0;
   border-radius: 14px;
+  background: #ffffff;
   isolation: isolate;
 }
 .home-tabs::before {
   position: absolute;
   top: -2px;
-  right: -16px;
+  right: -12px;
   bottom: 0;
-  left: -16px;
+  left: -12px;
   z-index: -1;
   background: #f7faff;
   content: "";
 }
-.home-tabs :deep(.van-tabs__wrap) {
-  background: #ffffff;
-  overflow: hidden;
-  border-radius: 14px;
-}
-.home-tabs :deep(.van-tabs__nav) {
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 0px;
-  border-radius: 14px;
-  background: #ffffff;
-}
-.home-tabs :deep(.van-tab) {
-  flex: none;
+.home-tab {
+  flex: 1;
   min-width: 0;
+  display: flex;
+  justify-content: center;
   padding: 0;
+  cursor: pointer;
+  transition: transform 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-tab:active {
+  transform: scale(0.96);
 }
 .ranking-tab {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  min-width: 72px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 999px;
   color: #94a3b8;
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
+  background: transparent;
 }
 .ranking-tab__icon {
   width: 20px;
   height: 20px;
-  color: #94a3b8;
+  color: currentColor;
   font-size: 20px;
   flex-shrink: 0;
 }
-.home-tabs :deep(.van-tab--active) .ranking-tab {
-  color: #1677ff;
+.home-tab--active .ranking-tab {
+  color: #ffffff;
   font-weight: 700;
-}
-.home-tabs :deep(.van-tab--active) .ranking-tab__icon {
-  color: #1677ff;
-}
-/* .home-tabs :deep(.van-tabs__line) {
-  width: 24px;
-  height: 2px;
-  border-radius: 999px;
   background: #1677ff;
-} */
-.home-tabs :deep(.van-tabs__line) {
-  display: none;
-}
-.home-tabs :deep(.van-tabs__wrap::after),
-.home-tabs :deep(.van-tabs__nav::after) {
-  display: none;
+  box-shadow: 0 8px 18px rgba(22, 119, 255, 0.18);
 }
 .product-list {
   display: flex;
@@ -654,14 +602,37 @@ watch(activeTab, () => {
   gap: 12px;
   padding: 14px;
   margin-bottom: 10px;
+  border: 1px solid #eaf1ff;
   border-radius: 18px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(22, 119, 255, 0.06);
-  border: 1px solid #eaf1ff;
   cursor: pointer;
+  transition: all 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
 }
-.product-card:last-child {
-  margin-bottom: 0;
+.product-card:active {
+  transform: scale(0.985);
+}
+.view-all-products {
+  width: 100%;
+  height: 44px;
+  border: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+  color: #1677ff;
+  font-size: 14px;
+  font-weight: 700;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(22, 119, 255, 0.06);
+  transition: all 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.view-all-products:active {
+  transform: scale(0.98);
 }
 .product-card-left {
   flex-shrink: 0;
@@ -672,7 +643,6 @@ watch(activeTab, () => {
   height: 116px;
   overflow: visible;
 }
-
 .product-image-frame {
   width: 100%;
   height: 100%;
@@ -701,13 +671,13 @@ watch(activeTab, () => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 4px;
 }
 .product-name {
-  font-size: 16px;
-  font-weight: 700;
   color: #111827;
-  line-height: 22px;
+  font-size: 14px;
+  font-weight: 600;
+  /* line-height: 22px; */
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;

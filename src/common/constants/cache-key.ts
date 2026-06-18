@@ -4,4 +4,5 @@ const SYSTEM_NAME = "mobvue"
 export class CacheKey {
   static readonly TOKEN = `${SYSTEM_NAME}-token-key`
   static readonly IS_DARK = `${SYSTEM_NAME}-is-dark-key`
+  static readonly USER_INFO = `${SYSTEM_NAME}-user-info-key`
 }

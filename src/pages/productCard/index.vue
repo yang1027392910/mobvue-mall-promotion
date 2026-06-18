@@ -444,7 +444,7 @@ onMounted(() => {
 .basic-section,
 .profit-card,
 .params-card {
-  margin: 12px 16px 0;
+  margin: 12px 12px 0;
   border-radius: 16px;
   background: #ffffff;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
@@ -594,7 +594,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 10px 16px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 -8px 22px rgba(15, 23, 42, 0.08);
 }
