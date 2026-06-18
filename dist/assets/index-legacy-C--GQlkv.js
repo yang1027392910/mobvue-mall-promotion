@@ -1,1 +1,0 @@
-System.register(["./index-legacy-D1lsldyR.js"],function(e,t){"use strict";var r;return{setters:[e=>{r=e.r}],execute:function(){e("g",function(e){return r({url:"h5/banner/list",method:"get",params:e})})}}});
