@@ -6,6 +6,7 @@
 
 :root {
   --van-base-font: "PingFang SC", "Helvetica Neue", Arial, "Segoe UI", sans-serif;
+  --app-svg-icon-size: 2.4rem;
 }
 
 html {
@@ -59,4 +60,12 @@ a:hover {
 
 div:focus {
   outline: none;
+}
+
+/* 统一 Iconify SVG 图标尺寸，不影响页面中的 SVG 插画 */
+svg.iconify {
+  width: var(--app-svg-icon-size) !important;
+  min-width: var(--app-svg-icon-size);
+  height: var(--app-svg-icon-size) !important;
+  min-height: var(--app-svg-icon-size);
 }

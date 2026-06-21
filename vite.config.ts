@@ -13,7 +13,7 @@ import svgLoader from "vite-svg-loader"
 
 // Configuring Vite: https://cn.vite.dev/config
 export default defineConfig(({ mode }) => {
-  const { VITE_PUBLIC_PATH, VITE_APP_TITLE, VITE_PWA_DESCRIPTION, VITE_PWA_THEME_COLOR, VITE_IMAGE_BASE_URL } = loadEnv(mode, process.cwd(), "") as ImportMetaEnv
+  const { VITE_PUBLIC_PATH, VITE_APP_TITLE, VITE_PWA_DESCRIPTION, VITE_PWA_THEME_COLOR, VITE_PROXY_TARGET } = loadEnv(mode, process.cwd(), "") as ImportMetaEnv
   return {
     // 开发或打包构建时用到的公共基础路径
     base: VITE_PUBLIC_PATH,
@@ -38,11 +38,16 @@ export default defineConfig(({ mode }) => {
       // 反向代理
       proxy: {
         "/api": {
-          target: VITE_IMAGE_BASE_URL,
+          target: VITE_PROXY_TARGET,
           // 是否为 WebSocket
           ws: false,
           // 是否允许跨域
           changeOrigin: true
+        },
+        "/image-proxy": {
+          target: VITE_PROXY_TARGET,
+          changeOrigin: true,
+          rewrite: path => path.replace(/^\/image-proxy/, "")
         }
       },
       // 是否允许跨域

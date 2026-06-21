@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { RawBannerItem } from "@@/apis/banner/type"
+import type { AxiosError } from "axios"
 import { getBannerListApi } from "@@/apis/banner"
 import { Icon } from "@iconify/vue"
-import { closeToast, showFailToast, showLoadingToast, showSuccessToast } from "vant"
+import { showFailToast, showLoadingToast, showSuccessToast } from "vant"
 import goodsIcon from "@/assets/login/goods.png"
 import safeIcon from "@/assets/login/safe.png"
 import serviceIcon from "@/assets/login/service.png"
@@ -18,6 +19,8 @@ const sendingCode = ref(false)
 const countdown = ref(0)
 const emailError = ref("")
 const loginBannerImage = ref("")
+const loginErrorToastVisible = ref(false)
+const loginErrorToastMessage = ref("")
 let countdownTimer: ReturnType<typeof setInterval> | undefined
 
 const loginFormData = reactive({
@@ -33,6 +36,30 @@ const sendCodeText = computed(() => {
   if (countdown.value > 0) return `${countdown.value}s`
   return "Send Code"
 })
+
+interface LoginErrorResponse {
+  error?: unknown
+  message?: string
+}
+
+function getLoginErrorMessage(error: unknown, fallback: string) {
+  const axiosError = error as AxiosError<LoginErrorResponse>
+  const responseError = axiosError.response?.data?.error
+  if (typeof responseError === "string" && responseError.trim()) {
+    return responseError
+  }
+
+  if (responseError && typeof responseError === "object") {
+    return JSON.stringify(responseError)
+  }
+
+  return axiosError.response?.data?.message || axiosError.message || fallback
+}
+
+function showLoginErrorToast(error: unknown, fallback: string) {
+  loginErrorToastMessage.value = getLoginErrorMessage(error, fallback)
+  loginErrorToastVisible.value = true
+}
 
 const loginHeroStyle = computed(() => {
   if (!loginBannerImage.value) return {}
@@ -96,7 +123,7 @@ function onSubmit() {
   }
 
   loading.value = true
-  showLoadingToast({
+  const loadingToast = showLoadingToast({
     message: "Continuing...",
     forbidClick: true,
     duration: 0
@@ -105,14 +132,15 @@ function onSubmit() {
     email: loginFormData.email,
     code: loginFormData.code
   }).then(({ data }) => {
+    loadingToast.close()
     userStore.setToken(data.token, data.user)
     router.push("/")
   }).catch((error) => {
+    loadingToast.close()
     loginFormData.code = ""
-    showFailToast(error?.message || "Verification failed")
+    showLoginErrorToast(error, "Verification failed")
   }).finally(() => {
     loading.value = false
-    closeToast()
   })
 }
 
@@ -160,18 +188,18 @@ function handleSendCode() {
   if (!validateEmail()) return
 
   sendingCode.value = true
-  showLoadingToast({
+  const loadingToast = showLoadingToast({
     message: "Sending code...",
     forbidClick: true,
     duration: 0
   })
   sendEmailCode(loginFormData.email).then(() => {
-    closeToast()
+    loadingToast.close()
     showSuccessToast("Code sent")
     startCountdown()
   }).catch((error) => {
-    closeToast()
-    showFailToast(error?.message || "Failed to send code")
+    loadingToast.close()
+    showLoginErrorToast(error, "Failed to send code")
   }).finally(() => {
     sendingCode.value = false
   })
@@ -196,12 +224,26 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="login-page">
+    <van-toast
+      v-model:show="loginErrorToastVisible"
+      type="fail"
+      :message="loginErrorToastMessage"
+      :duration="3000"
+      word-break="break-word"
+      position="middle"
+      teleport="body"
+      :z-index="9999"
+    />
+
     <div class="login-shell">
-      <button class="back-home" type="button" @click="handleBackHome">
-        <span class="back-home__icon">
-          <Icon icon="solar:alt-arrow-left-linear" />
-        </span>
-        <!-- <span>Back to Home</span> -->
+      <button
+        class="back-home"
+        type="button"
+        aria-label="返回首页"
+        title="返回首页"
+        @click="handleBackHome"
+      >
+        <span class="back-home__icon" aria-hidden="true">×</span>
       </button>
 
       <header class="login-hero" :style="loginHeroStyle" />
@@ -339,20 +381,17 @@ onBeforeUnmount(() => {
 }
 
 .back-home {
-  position: absolute;
-  z-index: 3;
+  position: fixed;
+  z-index: 100;
   top: 12px;
-  left: 14px;
+  right: max(14px, calc((100vw - 375px) / 2 + 14px));
   display: inline-flex;
   align-items: center;
-  gap: 12px;
   border: 0;
   padding: 0;
-  color: #334155;
   font: inherit;
-  font-size: 15px;
-  font-weight: 600;
   background: transparent;
+  cursor: pointer;
 }
 
 .back-home__icon {
@@ -362,7 +401,9 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   color: #0b4fb3;
-  font-size: 21px;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 1;
   background: rgba(255, 255, 255, 0.78);
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
   backdrop-filter: blur(10px);
@@ -502,15 +543,13 @@ onBeforeUnmount(() => {
   display: block;
   margin: 0 0 7px;
   color: #0f172a;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 18px;
+  line-height: 15px;
 }
 
 .login-field {
-  height: 44px;
-  min-height: 44px;
-  max-height: 44px;
+  height: 40px;
   padding: 0 10px 0 13px;
   border: 1px solid #d8e6f7;
   border-radius: 16px;
@@ -695,8 +734,8 @@ onBeforeUnmount(() => {
 
 .benefit-icon img {
   display: block;
-  width: 20px;
-  height: 20px;
+  width: 40px;
+  height: 40px;
   object-fit: contain;
 }
 
