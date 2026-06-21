@@ -77,7 +77,8 @@ function getTabbarTarget(path: string) {
       <template #icon>
         <Icon
           :icon="route.path === item.path ? item.activeIcon : item.icon"
-          width="22"
+          width="25"
+          height="25"
         />
       </template>
       {{ item.title }}
@@ -108,5 +109,10 @@ function getTabbarTarget(path: string) {
 
 .app-tabbar :deep(.van-tabbar-item__icon) {
   margin-bottom: 3px;
+}
+
+.app-tabbar :deep(.van-tabbar-item__icon svg) {
+  width: 25px;
+  height: 25px;
 }
 </style>

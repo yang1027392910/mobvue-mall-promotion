@@ -37,6 +37,13 @@ export interface RawProductItem {
   salesVolume?: number | string
   createdAt?: string
   createTime?: string
+  canViewSupplierContact?: boolean
+  supplierContact?: {
+    name?: string
+    whatsapp?: string
+    wechat?: string
+    phone?: string
+  } | null
 }
 
 export interface ProductListPageData {

@@ -337,21 +337,21 @@ onBeforeUnmount(() => {
             <img :src="safeIcon" alt="">
           </div>
           <strong>Secure &amp; Reliable</strong>
-          <span>Multiple layers of protection</span>
+          <!-- <span>Multiple layers of protection</span> -->
         </div>
         <div class="benefit-item">
           <div class="benefit-icon">
             <img :src="goodsIcon" alt="">
           </div>
           <strong>Verified Suppliers</strong>
-          <span>Carefully selected trusted suppliers</span>
+          <!-- <span>Carefully selected trusted suppliers</span> -->
         </div>
         <div class="benefit-item">
           <div class="benefit-icon">
             <img :src="serviceIcon" alt="">
           </div>
           <strong>Dedicated Support</strong>
-          <span>Professional sourcing assistance</span>
+          <!-- <span>Professional sourcing assistance</span> -->
         </div>
       </section>
 
@@ -395,18 +395,35 @@ onBeforeUnmount(() => {
 }
 
 .back-home__icon {
+  position: relative;
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  display: grid;
-  place-items: center;
   color: #0b4fb3;
-  font-size: 30px;
-  font-weight: 300;
-  line-height: 1;
+  font-size: 0;
   background: rgba(255, 255, 255, 0.78);
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16);
   backdrop-filter: blur(10px);
+}
+
+.back-home__icon::before,
+.back-home__icon::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  content: "";
+}
+
+.back-home__icon::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.back-home__icon::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .login-hero {
@@ -521,7 +538,7 @@ onBeforeUnmount(() => {
   z-index: 2;
   width: calc(100% - 36px);
   margin: -30px 18px 0;
-  padding: 20px 18px 21px;
+  padding: 10px 18px 10px;
   border: 1px solid rgba(216, 230, 247, 0.72);
   border-radius: 24px;
   background: #ffffff;
@@ -667,9 +684,10 @@ onBeforeUnmount(() => {
 }
 
 .field-hint {
-  margin: 6px 2px 0;
+  margin: 2px 2px 0;
   color: #64748b;
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 500;
   line-height: 18px;
 }
 
@@ -682,8 +700,8 @@ onBeforeUnmount(() => {
 
 .sign-in-button {
   width: 100%;
-  height: 44px;
-  margin-top: 22px;
+  height: 40px;
+  margin-top: 10px;
   border: 0;
   border-radius: 18px;
   color: #ffffff;
@@ -697,8 +715,8 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
-  margin: 22px 18px 0;
-  padding: 14px 0 2px;
+  margin: 10px 18px 0;
+  padding: 10px 0 2px;
 }
 
 .benefit-item {

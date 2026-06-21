@@ -3,8 +3,16 @@ import type { RawProductItem } from "@@/apis/products/type"
 import { favoriteClickApi } from "@@/apis/favorite"
 import { getProductListApi } from "@@/apis/products"
 import { requireLogin } from "@@/utils/guest-access"
-import { computed, ref } from "vue"
+import { showFailToast, showSuccessToast } from "vant"
+import { computed, nextTick, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
+
+interface SupplierContact {
+  name: string
+  whatsapp: string
+  wechat: string
+  phone: string
+}
 
 interface ProductDetail {
   id: number
@@ -25,6 +33,8 @@ interface ProductDetail {
   shippingCost: string
   otherFees: string
   isFavorite: boolean
+  canViewSupplierContact: boolean
+  supplierContact: SupplierContact | null
   params: Array<{ icon: string, label: string, value: string }>
 }
 
@@ -37,6 +47,8 @@ const favoriteLoading = ref(false)
 const errorText = ref("")
 const product = ref<ProductDetail | null>(null)
 const activeImageIndex = ref(0)
+const supplierContactVisible = ref(false)
+const supplierContactSection = ref<HTMLElement | null>(null)
 
 const productId = computed(() => Number(route.query.id || 0))
 
@@ -89,6 +101,14 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
   const minimumOrderQuantity = toNumber(item.minimumOrderQuantity, 10)
   const shippingFee = toNumber(item.shippingFee)
   const otherFees = toNumber(item.otherFees)
+  const supplierContact = item.supplierContact
+    ? {
+        name: String(item.supplierContact.name ?? ""),
+        whatsapp: String(item.supplierContact.whatsapp ?? ""),
+        wechat: String(item.supplierContact.wechat ?? ""),
+        phone: String(item.supplierContact.phone ?? "")
+      }
+    : null
 
   return {
     id: toNumber(item.id ?? item.productId),
@@ -109,6 +129,8 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
     shippingCost: String(shippingFee),
     otherFees: String(otherFees),
     isFavorite: Boolean(item.isFavorite ?? item.favorite ?? false),
+    canViewSupplierContact: item.canViewSupplierContact === true,
+    supplierContact,
     params: [
       { icon: "orders-o", label: "MOQ", value: `${minimumOrderQuantity} pcs` },
       { icon: "cart-o", label: "Stock", value: `${toNumber(item.stock)} pcs` },
@@ -137,6 +159,7 @@ async function getProductDetail() {
     product.value = normalizedProduct
     activeImageIndex.value = 0
     isFavorite.value = normalizedProduct.isFavorite
+    supplierContactVisible.value = false
   } catch (error) {
     errorText.value = error instanceof Error ? error.message : "Failed to load product"
   } finally {
@@ -166,8 +189,7 @@ async function toggleFavorite() {
 }
 
 function handleCalculateProfit() {
-  if (!requireLogin(router)) return
-  if (!product.value) return
+  if (!requireLogin(router) || !product.value) return
 
   router.push({
     path: "/calculator",
@@ -181,6 +203,33 @@ function handleCalculateProfit() {
       otherFees: product.value.otherFees
     }
   })
+}
+
+function handleSupplierAction() {
+  if (!requireLogin(router) || !product.value) return
+
+  if (product.value.canViewSupplierContact) {
+    if (!product.value.supplierContact) {
+      showFailToast("Supplier contact information is unavailable.")
+      return
+    }
+
+    supplierContactVisible.value = true
+    nextTick(() => {
+      supplierContactSection.value?.scrollIntoView({
+        behavior: "smooth",
+        block: "end"
+      })
+    })
+    return
+  }
+
+  // TODO: Call the supplier access request API when the backend provides one.
+  showSuccessToast("Request submitted, please wait for review.")
+}
+
+function handleContactUs() {
+  router.push("/procurement-support")
 }
 
 onMounted(() => {
@@ -314,6 +363,43 @@ onMounted(() => {
             </div>
           </div>
         </section>
+
+        <section
+          v-if="product.canViewSupplierContact && product.supplierContact && supplierContactVisible"
+          ref="supplierContactSection"
+          class="supplier-contact-card"
+        >
+          <div class="supplier-contact-heading">
+            <div>
+              <van-icon name="phone-o" />
+              <h2>Supplier Information</h2>
+            </div>
+            <van-icon class="supplier-contact-check" name="checked" />
+          </div>
+
+          <div class="supplier-contact-list">
+            <div class="supplier-contact-row">
+              <van-icon name="manager-o" />
+              <span>Supplier Name</span>
+              <strong>{{ product.supplierContact.name || "--" }}</strong>
+            </div>
+            <div class="supplier-contact-row">
+              <van-icon name="chat-o" />
+              <span>WhatsApp</span>
+              <strong>{{ product.supplierContact.whatsapp || "--" }}</strong>
+            </div>
+            <div class="supplier-contact-row">
+              <van-icon name="comment-o" />
+              <span>WeChat</span>
+              <strong>{{ product.supplierContact.wechat || "--" }}</strong>
+            </div>
+            <div class="supplier-contact-row">
+              <van-icon name="phone-o" />
+              <span>Phone</span>
+              <strong>{{ product.supplierContact.phone || "--" }}</strong>
+            </div>
+          </div>
+        </section>
       </template>
     </main>
 
@@ -328,7 +414,22 @@ onMounted(() => {
       >
         {{ isFavorite ? "Favorited" : "Add to Favorites" }}
       </van-button>
-      <van-button class="bottom-button calculate-action" type="primary" color="#2563eb" @click="handleCalculateProfit">
+      <van-button
+        class="bottom-button supplier-secondary-action"
+        :class="{ 'no-access': !product.canViewSupplierContact }"
+        plain
+        :icon="product.canViewSupplierContact ? 'phone-o' : 'service-o'"
+        :color="product.canViewSupplierContact ? '#2e9d5c' : '#d97706'"
+        @click="product.canViewSupplierContact ? handleSupplierAction() : handleContactUs()"
+      >
+        {{ product.canViewSupplierContact ? "Supplier Info" : "Contact Us" }}
+      </van-button>
+      <van-button
+        class="bottom-button supplier-action"
+        type="primary"
+        color="#2563eb"
+        @click="handleCalculateProfit"
+      >
         Calculate Profit
       </van-button>
     </div>
@@ -367,7 +468,7 @@ onMounted(() => {
 
 .detail-content {
   min-height: calc(100vh - 46px);
-  padding-bottom: 92px;
+  padding-bottom: 96px;
   background: #f7f9fc;
 }
 
@@ -582,6 +683,44 @@ onMounted(() => {
   text-align: right;
 }
 
+.supplier-permission-card {
+  min-height: 64px;
+  margin: 12px 12px 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+
+.supplier-permission-card.has-access {
+  color: #2e9d5c;
+  background: #e8f7ee;
+}
+
+.supplier-permission-card.no-access {
+  color: #b96a16;
+  background: #fff4e5;
+}
+
+.supplier-permission-icon,
+.supplier-check-icon {
+  flex: 0 0 auto;
+  font-size: 20px;
+}
+
+.supplier-permission-card p {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 19px;
+}
+
+.supplier-check-icon {
+  color: #2e9d5c;
+}
+
 .bottom-bar {
   position: fixed;
   left: 50%;
@@ -589,23 +728,115 @@ onMounted(() => {
   z-index: 20;
   width: 100%;
   max-width: 430px;
-  height: 64px;
+  height: 68px;
   transform: translateX(-50%);
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 10px 12px;
+  grid-template-columns: 28fr 30fr 42fr;
+  gap: 8px;
+  padding: 12px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 -8px 22px rgba(15, 23, 42, 0.08);
 }
 
 .bottom-button {
   height: 44px;
-  border-radius: 12px;
+  border-radius: 10px;
   font-weight: 700;
 }
 
 .favorite-action {
   background: #ffffff;
+}
+
+.favorite-action :deep(.van-button__text),
+.supplier-secondary-action :deep(.van-button__text) {
+  font-size: 12px;
+}
+
+.supplier-secondary-action {
+  background: #f0faf4;
+}
+
+.supplier-secondary-action.no-access {
+  background: #fff7ed;
+}
+
+.supplier-action :deep(.van-button__text) {
+  font-size: 13px;
+}
+
+.supplier-contact-card {
+  scroll-margin-bottom: 76px;
+  margin: 12px 12px 0;
+  overflow: hidden;
+  border: 1px solid #d7efdf;
+  border-radius: 14px;
+  padding: 14px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(46, 157, 92, 0.08);
+}
+
+.supplier-contact-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: #2e9d5c;
+}
+
+.supplier-contact-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.supplier-contact-heading h2 {
+  margin: 0;
+  color: #111827;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.supplier-contact-heading .van-icon,
+.supplier-contact-check {
+  font-size: 20px;
+}
+
+.supplier-contact-list {
+  overflow: hidden;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+}
+
+.supplier-contact-row {
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: 20px 100px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.supplier-contact-row:last-child {
+  border-bottom: 0;
+}
+
+.supplier-contact-row > .van-icon {
+  color: #2e9d5c;
+  font-size: 18px;
+}
+
+.supplier-contact-row span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.supplier-contact-row strong {
+  min-width: 0;
+  color: #111827;
+  font-size: 14px;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 </style>
