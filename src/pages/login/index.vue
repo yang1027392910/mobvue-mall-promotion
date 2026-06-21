@@ -3,7 +3,7 @@ import type { RawBannerItem } from "@@/apis/banner/type"
 import type { AxiosError } from "axios"
 import { getBannerListApi } from "@@/apis/banner"
 import { Icon } from "@iconify/vue"
-import { showFailToast, showLoadingToast, showSuccessToast } from "vant"
+import { allowMultipleToast, showFailToast, showLoadingToast, showSuccessToast } from "vant"
 import goodsIcon from "@/assets/login/goods.png"
 import safeIcon from "@/assets/login/safe.png"
 import serviceIcon from "@/assets/login/service.png"
@@ -14,13 +14,13 @@ const router = useRouter()
 
 const userStore = useUserStore()
 
+allowMultipleToast()
+
 const loading = ref(false)
 const sendingCode = ref(false)
 const countdown = ref(0)
 const emailError = ref("")
 const loginBannerImage = ref("")
-const loginErrorToastVisible = ref(false)
-const loginErrorToastMessage = ref("")
 let countdownTimer: ReturnType<typeof setInterval> | undefined
 
 const loginFormData = reactive({
@@ -57,8 +57,13 @@ function getLoginErrorMessage(error: unknown, fallback: string) {
 }
 
 function showLoginErrorToast(error: unknown, fallback: string) {
-  loginErrorToastMessage.value = getLoginErrorMessage(error, fallback)
-  loginErrorToastVisible.value = true
+  const message = getLoginErrorMessage(error, fallback)
+  showFailToast({
+    message,
+    duration: 3000,
+    wordBreak: "break-word",
+    forbidClick: false
+  })
 }
 
 const loginHeroStyle = computed(() => {
@@ -194,7 +199,6 @@ function handleSendCode() {
     duration: 0
   })
   sendEmailCode(loginFormData.email).then(() => {
-    loadingToast.close()
     showSuccessToast("Code sent")
     startCountdown()
   }).catch((error) => {
@@ -224,17 +228,6 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="login-page">
-    <van-toast
-      v-model:show="loginErrorToastVisible"
-      type="fail"
-      :message="loginErrorToastMessage"
-      :duration="3000"
-      word-break="break-word"
-      position="middle"
-      teleport="body"
-      :z-index="9999"
-    />
-
     <div class="login-shell">
       <button
         class="back-home"
