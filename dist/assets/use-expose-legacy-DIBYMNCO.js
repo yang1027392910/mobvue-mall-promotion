@@ -1,0 +1,1 @@
+System.register(["./index-legacy-Dafbjt-D.js","./vue-legacy-GH_WpXkZ.js"],function(e,t){"use strict";var n,s;return{setters:[e=>{n=e.q},e=>{s=e.j}],execute:function(){e("u",function(e){const t=s();t&&n(t.proxy,e)})}}});

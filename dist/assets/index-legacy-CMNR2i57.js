@@ -1,1 +1,0 @@
-System.register(["./index-legacy-BkFjH6L-.js"],function(t,e){"use strict";var r;return{setters:[t=>{r=t.r}],execute:function(){t({f:function(t){return r({url:"h5/favorite/click",method:"post",data:t})},g:function(t){return r({url:"h5/favorite/list",method:"get",params:t})}})}}});
