@@ -76,6 +76,37 @@ const loggedIn = computed(() => isLoggedIn())
 const userEmail = computed(() => userStore.email || (userStore.username.includes("@") ? userStore.username : ""))
 const displayEmail = computed(() => maskEmail(userEmail.value))
 const avatarInitial = computed(() => getEmailInitial(userEmail.value))
+const verificationStatus = computed(() => Number(userStore.userInfo.verificationStatus ?? -1))
+const verificationMenu = computed(() => {
+  const statusMap = {
+    [-1]: {
+      description: "Verify your business information",
+      icon: "mdi:shield-alert-outline",
+      label: "",
+      className: "not-verified"
+    },
+    0: {
+      description: "Your verification is being reviewed",
+      icon: "mdi:shield-clock-outline",
+      label: "Under Review",
+      className: "under-review"
+    },
+    1: {
+      description: "Your business has been verified",
+      icon: "mdi:shield-check-outline",
+      label: "Verified",
+      className: "verified"
+    },
+    2: {
+      description: "Please update your information",
+      icon: "mdi:shield-remove-outline",
+      label: "Rejected",
+      className: "rejected"
+    }
+  }
+
+  return statusMap[verificationStatus.value as keyof typeof statusMap] || statusMap[-1]
+})
 
 function maskEmail(email: string) {
   const [prefix, domain] = email.split("@")
@@ -101,6 +132,18 @@ function handleLogout() {
 function handleNavigate(path?: string) {
   if (path) router.push(path)
 }
+
+function handleVerificationNavigate() {
+  if (verificationStatus.value !== 1) {
+    router.push("/user-verification")
+  }
+}
+
+onMounted(() => {
+  if (loggedIn.value) {
+    userStore.getInfo()
+  }
+})
 </script>
 
 <template>
@@ -155,6 +198,38 @@ function handleNavigate(path?: string) {
         </section>
 
         <section class="menu-card">
+          <div
+            class="menu-item verification-menu-item"
+            :class="[
+              `is-${verificationMenu.className}`,
+              { 'is-disabled': verificationStatus === 1 },
+            ]"
+            :role="verificationStatus === 1 ? undefined : 'button'"
+            :tabindex="verificationStatus === 1 ? -1 : 0"
+            @click="handleVerificationNavigate"
+          >
+            <span class="menu-icon verification-menu-icon">
+              <Icon :icon="verificationMenu.icon" />
+            </span>
+            <span class="menu-copy">
+              <span class="verification-title-row">
+                <strong>User Verification</strong>
+                <small
+                  v-if="verificationMenu.label"
+                  class="verification-status"
+                >
+                  {{ verificationMenu.label }}
+                </small>
+              </span>
+              <small>{{ verificationMenu.description }}</small>
+            </span>
+            <span v-if="verificationStatus === 1" class="verified-lock">
+              <van-icon name="lock" />
+              Verified
+            </span>
+            <van-icon v-else class="menu-arrow" name="arrow" />
+          </div>
+
           <div
             v-for="item in menuItems"
             :key="item.title"
@@ -453,6 +528,71 @@ function handleNavigate(path?: string) {
 
 .menu-item + .menu-item {
   border-top: 1px solid #eef2f7;
+}
+
+.verification-menu-item.is-disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.verification-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.verification-status {
+  margin: 0 !important;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  line-height: 14px !important;
+}
+
+.is-under-review .verification-status {
+  color: #1677ff;
+  background: #eaf3ff;
+}
+
+.is-verified .verification-status {
+  color: #16a34a;
+  background: #e8f7ee;
+}
+
+.is-rejected .verification-status {
+  color: #dc2626;
+  background: #fff1f2;
+}
+
+.verification-menu-icon :deep(svg) {
+  width: 20px;
+  height: 20px;
+}
+
+.is-under-review .verification-menu-icon {
+  color: #1677ff;
+  background: #eaf3ff;
+}
+
+.is-verified .verification-menu-icon {
+  color: #16a34a;
+  background: #e8f7ee;
+}
+
+.is-rejected .verification-menu-icon {
+  color: #dc2626;
+  background: #fff1f2;
+}
+
+.verified-lock {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #16a34a;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .menu-icon {

@@ -20,6 +20,7 @@ declare module 'vue' {
     VanIcon: typeof import('vant/es')['Icon']
     VanLoading: typeof import('vant/es')['Loading']
     VanNavBar: typeof import('vant/es')['NavBar']
+    VanPicker: typeof import('vant/es')['Picker']
     VanPopup: typeof import('vant/es')['Popup']
     VanStepper: typeof import('vant/es')['Stepper']
     VanSwipe: typeof import('vant/es')['Swipe']
@@ -27,5 +28,6 @@ declare module 'vue' {
     VanTabbar: typeof import('vant/es')['Tabbar']
     VanTabbarItem: typeof import('vant/es')['TabbarItem']
     VanToast: typeof import('vant/es')['Toast']
+    VanUploader: typeof import('vant/es')['Uploader']
   }
 }

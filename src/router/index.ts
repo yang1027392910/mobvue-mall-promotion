@@ -152,6 +152,20 @@ export const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: "/user-verification",
+    component: () => import("@/pages/UserVerification.vue"),
+    name: "UserVerification",
+    meta: {
+      title: "Supplier Verification",
+      layout: {
+        navBar: {
+          showNavBar: false,
+          showLeftArrow: false
+        }
+      }
+    }
+  },
+  {
     path: "/favorites",
     component: () => import("@/pages/favorites/index.vue"),
     name: "Favorites",

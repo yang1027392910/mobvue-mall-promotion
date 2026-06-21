@@ -4,12 +4,17 @@ import { setToken as _setToken, getToken, removeToken } from "@@/utils/cache/coo
 import { pinia } from "@/pinia"
 
 interface UserInfo {
+  id?: number
+  userId?: number
+  user_id?: number
+  sub?: number | string
   username?: string
   name?: string
   nickname?: string
   email?: string
   role?: string
   roles?: string[]
+  verificationStatus?: number
 }
 
 function getStoredUserInfo(): UserInfo {
@@ -31,8 +36,10 @@ function removeStoredUserInfo() {
 
 export const useUserStore = defineStore("user", () => {
   const storedUserInfo = getStoredUserInfo()
+  const userInfo = ref<UserInfo>(storedUserInfo)
 
   const token = ref<string>(getToken() || "")
+  const id = ref<number>(Number(storedUserInfo.id ?? storedUserInfo.userId ?? storedUserInfo.user_id ?? storedUserInfo.sub ?? 0))
 
   const roles = ref<string[]>(storedUserInfo.roles?.length ? storedUserInfo.roles : (storedUserInfo.role ? [storedUserInfo.role] : []))
 
@@ -40,11 +47,14 @@ export const useUserStore = defineStore("user", () => {
   const email = ref<string>(storedUserInfo.email || "")
 
   const setUserInfo = (user: UserInfo = {}, shouldStore = true) => {
-    username.value = user.username || user.name || user.nickname || user.email || "h5"
-    email.value = user.email || ""
-    roles.value = user.roles?.length ? user.roles : (user.role ? [user.role] : ["h5"])
+    userInfo.value = { ...userInfo.value, ...user }
+    const mergedUser = userInfo.value
+    id.value = Number(mergedUser.id ?? mergedUser.userId ?? mergedUser.user_id ?? mergedUser.sub ?? 0)
+    username.value = mergedUser.username || mergedUser.name || mergedUser.nickname || mergedUser.email || "h5"
+    email.value = mergedUser.email || ""
+    roles.value = mergedUser.roles?.length ? mergedUser.roles : (mergedUser.role ? [mergedUser.role] : ["h5"])
     if (shouldStore) {
-      setStoredUserInfo(user)
+      setStoredUserInfo(userInfo.value)
     }
   }
 
@@ -95,12 +105,14 @@ export const useUserStore = defineStore("user", () => {
     removeToken()
     removeStoredUserInfo()
     token.value = ""
+    id.value = 0
     roles.value = []
     username.value = ""
     email.value = ""
+    userInfo.value = {}
   }
 
-  return { token, roles, username, email, setToken, getInfo, changeRoles, resetToken }
+  return { token, id, roles, username, email, userInfo, setUserInfo, setToken, getInfo, changeRoles, resetToken }
 })
 
 /**
