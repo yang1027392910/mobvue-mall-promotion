@@ -48,7 +48,7 @@ const banners = ref<BannerItem[]>([
   }
 ])
 const homeHeaderRef = ref<HTMLElement | null>(null)
-const tabsOffsetTop = ref(0)
+const tabsOffsetTop = ref(62)
 let headerResizeObserver: ResizeObserver | null = null
 
 const tabs: Array<{ title: string, name: HotProductType }> = [
@@ -90,7 +90,7 @@ function toNumber(value: number | string | undefined, fallback = 0) {
 }
 
 function formatMoney(value: number | string | undefined) {
-  return `$${toNumber(value).toFixed(2)}`
+  return `₱${toNumber(value).toFixed(2)}`
 }
 
 function getProductImage(image?: string) {
@@ -434,15 +434,16 @@ watch(activeTab, () => {
 <style scoped>
 .page-home {
   min-height: calc(100vh - 10px);
-  padding: 0 12px 88px;
-  overflow-x: hidden;
+  padding: var(--home-tabs-top) 12px 88px;
+  overflow-x: clip;
   background: #f7faff;
 }
 .home-header {
-  position: sticky;
+  position: fixed;
   top: 0;
+  right: 0;
+  left: 0;
   z-index: 20;
-  margin: 0 -12px;
   padding: 18px 12px 8px;
   background: #f7faff;
 }

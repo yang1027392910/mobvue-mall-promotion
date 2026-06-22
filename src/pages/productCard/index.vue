@@ -3,6 +3,7 @@ import type { RawProductItem } from "@@/apis/products/type"
 import { favoriteClickApi } from "@@/apis/favorite"
 import { getProductListApi } from "@@/apis/products"
 import { requireLogin } from "@@/utils/guest-access"
+import { Icon } from "@iconify/vue"
 import { showFailToast, showSuccessToast } from "vant"
 import { computed, nextTick, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
@@ -47,7 +48,6 @@ const favoriteLoading = ref(false)
 const errorText = ref("")
 const product = ref<ProductDetail | null>(null)
 const activeImageIndex = ref(0)
-const supplierContactVisible = ref(false)
 const supplierContactSection = ref<HTMLElement | null>(null)
 
 const productId = computed(() => Number(route.query.id || 0))
@@ -57,12 +57,12 @@ function toNumber(value: number | string | undefined, fallback = 0) {
   return Number.isFinite(numberValue) ? numberValue : fallback
 }
 
-function formatPeso(value: number | string | undefined) {
-  return `₱${toNumber(value).toFixed(2)}`
+function toBoolean(value: boolean | number | string | undefined) {
+  return value === true || value === 1 || value === "1" || value === "true"
 }
 
-function formatDollar(value: number | string | undefined) {
-  return `$${toNumber(value).toFixed(2)}`
+function formatPeso(value: number | string | undefined) {
+  return `₱${toNumber(value).toFixed(2)}`
 }
 
 function getAssetUrl(url?: string) {
@@ -97,7 +97,7 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
   const phPrice = toNumber(item.phPrice ?? item.price)
   const profit = toNumber(item.profit, phPrice - chinaPrice)
   const profitMargin = phPrice ? Math.round((profit / phPrice) * 100) : 0
-  const createdAt = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "--"
+  // const createdAt = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "--"
   const minimumOrderQuantity = toNumber(item.minimumOrderQuantity, 10)
   const shippingFee = toNumber(item.shippingFee)
   const otherFees = toNumber(item.otherFees)
@@ -119,7 +119,7 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
     imageCount: `${imageUrls.length ? 1 : 0}/${imageUrls.length || 1}`,
     sales: toNumber(item.sales ?? item.salesVolume),
     description: String(item.description ?? item.subtitle ?? ""),
-    chinaCost: formatDollar(item.chinaPrice),
+    chinaCost: formatPeso(item.chinaPrice),
     phPrice: formatPeso(item.phPrice ?? item.price),
     profit: formatPeso(item.profit),
     profitMargin: `${profitMargin}%`,
@@ -129,15 +129,14 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
     shippingCost: String(shippingFee),
     otherFees: String(otherFees),
     isFavorite: Boolean(item.isFavorite ?? item.favorite ?? false),
-    canViewSupplierContact: item.canViewSupplierContact === true,
+    canViewSupplierContact: toBoolean(item.showSupplierContact ?? item.canViewSupplierContact),
     supplierContact,
     params: [
-      { icon: "orders-o", label: "MOQ", value: `${minimumOrderQuantity} pcs` },
+      { icon: "orders-o", label: "Min Order", value: `${minimumOrderQuantity} pcs` },
       { icon: "cart-o", label: "Stock", value: `${toNumber(item.stock)} pcs` },
-      { icon: "logistics", label: "Shipping Fee", value: formatDollar(shippingFee) },
-      { icon: "apps-o", label: "Category ID", value: String(toNumber(item.categoryId)) },
-      { icon: "fire-o", label: "Sales", value: String(toNumber(item.sales ?? item.salesVolume)) },
-      { icon: "clock-o", label: "Created At", value: createdAt }
+      { icon: "logistics", label: "Shipping Fee", value: formatPeso(shippingFee) },
+      { icon: "apps-o", label: "Category ID", value: String(toNumber(item.categoryId)) }
+
     ]
   }
 }
@@ -159,7 +158,6 @@ async function getProductDetail() {
     product.value = normalizedProduct
     activeImageIndex.value = 0
     isFavorite.value = normalizedProduct.isFavorite
-    supplierContactVisible.value = false
   } catch (error) {
     errorText.value = error instanceof Error ? error.message : "Failed to load product"
   } finally {
@@ -214,7 +212,6 @@ function handleSupplierAction() {
       return
     }
 
-    supplierContactVisible.value = true
     nextTick(() => {
       supplierContactSection.value?.scrollIntoView({
         behavior: "smooth",
@@ -230,6 +227,36 @@ function handleSupplierAction() {
 
 function handleContactUs() {
   router.push("/procurement-support")
+}
+
+async function copySupplierContact(label: string, value: string) {
+  const contact = value.trim()
+
+  if (!contact) {
+    showFailToast(`${label} is unavailable.`)
+    return
+  }
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(contact)
+    } else {
+      const textarea = document.createElement("textarea")
+      textarea.value = contact
+      textarea.style.position = "fixed"
+      textarea.style.opacity = "0"
+      document.body.appendChild(textarea)
+      textarea.select()
+      const copied = document.execCommand("copy")
+      textarea.remove()
+
+      if (!copied) throw new Error("Copy failed")
+    }
+
+    showSuccessToast(`${label} copied.`)
+  } catch {
+    showFailToast("Unable to copy. Please copy it manually.")
+  }
 }
 
 onMounted(() => {
@@ -307,12 +334,6 @@ onMounted(() => {
             <van-icon name="fire-o" />
             <span>Sales {{ product.sales }}</span>
           </div>
-          <p v-if="product.subtitle" class="product-subtitle">
-            {{ product.subtitle }}
-          </p>
-          <p class="product-description">
-            {{ product.description }}
-          </p>
         </section>
 
         <section class="profit-card">
@@ -341,10 +362,14 @@ onMounted(() => {
                 {{ product.profit }}
               </div>
             </div>
-          </div>
-          <div class="margin-row">
-            <span>Profit Margin</span>
-            <strong>{{ product.profitMargin }}</strong>
+            <div class="price-item">
+              <div class="price-label">
+                Profit Margin
+              </div>
+              <div class="price-value profit">
+                {{ product.profitMargin }}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -364,8 +389,14 @@ onMounted(() => {
           </div>
         </section>
 
+        <section class="description-card">
+          <p class="product-description">
+            {{ product.description }}
+          </p>
+        </section>
+
         <section
-          v-if="product.canViewSupplierContact && product.supplierContact && supplierContactVisible"
+          v-if="product.canViewSupplierContact && product.supplierContact"
           ref="supplierContactSection"
           class="supplier-contact-card"
         >
@@ -387,16 +418,40 @@ onMounted(() => {
               <van-icon name="chat-o" />
               <span>WhatsApp</span>
               <strong>{{ product.supplierContact.whatsapp || "--" }}</strong>
+              <button
+                class="contact-copy-button"
+                type="button"
+                aria-label="Copy WhatsApp"
+                @click="copySupplierContact('WhatsApp', product.supplierContact.whatsapp)"
+              >
+                <Icon icon="meteor-icons:copy" />
+              </button>
             </div>
             <div class="supplier-contact-row">
               <van-icon name="comment-o" />
               <span>WeChat</span>
               <strong>{{ product.supplierContact.wechat || "--" }}</strong>
+              <button
+                class="contact-copy-button"
+                type="button"
+                aria-label="Copy WeChat"
+                @click="copySupplierContact('WeChat', product.supplierContact.wechat)"
+              >
+                <Icon icon="meteor-icons:copy" />
+              </button>
             </div>
             <div class="supplier-contact-row">
               <van-icon name="phone-o" />
               <span>Phone</span>
               <strong>{{ product.supplierContact.phone || "--" }}</strong>
+              <button
+                class="contact-copy-button"
+                type="button"
+                aria-label="Copy phone number"
+                @click="copySupplierContact('Phone', product.supplierContact.phone)"
+              >
+                <Icon icon="meteor-icons:copy" />
+              </button>
             </div>
           </div>
         </section>
@@ -544,21 +599,23 @@ onMounted(() => {
 
 .basic-section,
 .profit-card,
-.params-card {
-  margin: 12px 12px 0;
+.params-card,
+.description-card {
+  margin: 8px 8px 0;
   border-radius: 16px;
+  padding: 0 10px;
   background: #ffffff;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
 }
 
 .basic-section {
-  padding: 16px;
+  padding: 10px;
 }
 
 .product-name {
   margin: 0;
   color: #111827;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   line-height: 28px;
 }
@@ -575,10 +632,14 @@ onMounted(() => {
 
 .product-subtitle,
 .product-description {
-  margin: 10px 0 0;
+  margin: 0;
   color: #6b7280;
   font-size: 14px;
   line-height: 21px;
+}
+
+.description-card {
+  padding: 14px 16px;
 }
 
 .product-subtitle {
@@ -592,7 +653,7 @@ onMounted(() => {
 
 .price-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -609,9 +670,9 @@ onMounted(() => {
 
 .price-value {
   margin-top: 4px;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 24px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: normal;
 }
 
 .price-value.cost {
@@ -626,22 +687,6 @@ onMounted(() => {
   color: #16a34a;
 }
 
-.margin-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid #eef2f7;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.margin-row strong {
-  color: #16a34a;
-  font-size: 18px;
-}
-
 .params-card {
   overflow: hidden;
 }
@@ -650,9 +695,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  min-height: 52px;
-  padding: 0 16px;
+  gap: 5px;
+  min-height: 40px;
+  padding: 0 10x;
   border-bottom: 1px solid #eef2f7;
 }
 
@@ -731,9 +776,9 @@ onMounted(() => {
   height: 68px;
   transform: translateX(-50%);
   display: grid;
-  grid-template-columns: 28fr 30fr 42fr;
-  gap: 8px;
-  padding: 12px;
+  grid-template-columns: 28fr 28fr 30fr;
+  gap: 5px;
+  padding: 5px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 -8px 22px rgba(15, 23, 42, 0.08);
 }
@@ -741,7 +786,7 @@ onMounted(() => {
 .bottom-button {
   height: 44px;
   border-radius: 10px;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .favorite-action {
@@ -811,7 +856,7 @@ onMounted(() => {
 .supplier-contact-row {
   min-height: 52px;
   display: grid;
-  grid-template-columns: 20px 100px minmax(0, 1fr);
+  grid-template-columns: 20px 100px minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
@@ -830,6 +875,7 @@ onMounted(() => {
 .supplier-contact-row span {
   color: #6b7280;
   font-size: 13px;
+  white-space: nowrap;
 }
 
 .supplier-contact-row strong {
@@ -838,5 +884,18 @@ onMounted(() => {
   font-size: 14px;
   text-align: right;
   overflow-wrap: anywhere;
+}
+
+.contact-copy-button {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+  background: transparent;
+  font-size: 18px;
 }
 </style>

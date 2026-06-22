@@ -81,25 +81,25 @@ const verificationMenu = computed(() => {
   const statusMap = {
     [-1]: {
       description: "Verify your business information",
-      icon: "mdi:shield-alert-outline",
+      icon: "warning-o",
       label: "",
       className: "not-verified"
     },
     0: {
       description: "Your verification is being reviewed",
-      icon: "mdi:shield-clock-outline",
+      icon: "clock-o",
       label: "Under Review",
       className: "under-review"
     },
     1: {
       description: "Your business has been verified",
-      icon: "mdi:shield-check-outline",
+      icon: "passed",
       label: "Verified",
       className: "verified"
     },
     2: {
       description: "Please update your information",
-      icon: "mdi:shield-remove-outline",
+      icon: "close",
       label: "Rejected",
       className: "rejected"
     }
@@ -209,7 +209,7 @@ onMounted(() => {
             @click="handleVerificationNavigate"
           >
             <span class="menu-icon verification-menu-icon">
-              <Icon :icon="verificationMenu.icon" />
+              <van-icon :name="verificationMenu.icon" />
             </span>
             <span class="menu-copy">
               <span class="verification-title-row">
@@ -565,9 +565,8 @@ onMounted(() => {
   background: #fff1f2;
 }
 
-.verification-menu-icon :deep(svg) {
-  width: 20px;
-  height: 20px;
+.verification-menu-icon :deep(.van-icon) {
+  font-size: 20px;
 }
 
 .is-under-review .verification-menu-icon {
