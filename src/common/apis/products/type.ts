@@ -37,6 +37,7 @@ export interface RawProductItem {
   salesVolume?: number | string
   createdAt?: string
   createTime?: string
+  showSupplierContact?: boolean | number | string
   canViewSupplierContact?: boolean
   supplierContact?: {
     name?: string
