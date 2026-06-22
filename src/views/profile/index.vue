@@ -72,6 +72,7 @@ const menuItems: MenuItem[] = [
 
 const router = useRouter()
 const userStore = useUserStore()
+const guestAccessiblePaths = ["/procurement-support", "/logistics-suppliers"]
 const loggedIn = computed(() => isLoggedIn())
 const userEmail = computed(() => userStore.email || (userStore.username.includes("@") ? userStore.username : ""))
 const displayEmail = computed(() => maskEmail(userEmail.value))
@@ -130,10 +131,23 @@ function handleLogout() {
 }
 
 function handleNavigate(path?: string) {
-  if (path) router.push(path)
+  if (!path) return
+
+  const targetPath = path.split("?")[0]
+  if (!loggedIn.value && !guestAccessiblePaths.includes(targetPath)) {
+    handleLogin()
+    return
+  }
+
+  router.push(path)
 }
 
 function handleVerificationNavigate() {
+  if (!loggedIn.value) {
+    handleLogin()
+    return
+  }
+
   if (verificationStatus.value !== 1) {
     router.push("/user-verification")
   }
@@ -148,113 +162,103 @@ onMounted(() => {
 
 <template>
   <div class="profile-page">
-    <div v-if="!loggedIn" class="profile-guest">
-      <van-icon class="profile-guest-icon" name="user-o" />
-      <div class="profile-guest-title">
-        Login to unlock this feature
+    <header class="profile-header">
+      <div v-if="!loggedIn" class="header-toolbar">
+        <div />
+        <button class="header-login-button" type="button" @click="handleLogin">
+          Login
+        </button>
       </div>
-      <van-button class="profile-guest-button" type="primary" round @click="handleLogin">
-        Login
-      </van-button>
-    </div>
 
-    <template v-else>
-      <header class="profile-header">
-        <!-- <div class="header-toolbar">
-          <div />
-          <div class="settings-button" role="button" tabindex="0" aria-label="Settings">
-            <van-icon name="setting-o" />
-          </div>
-        </div> -->
-
-        <div class="header-profile">
-          <div class="avatar">
-            {{ avatarInitial }}
-          </div>
-          <div class="header-copy">
-            <h1>Hello! 👋</h1>
-            <p>{{ displayEmail }}</p>
-            <span>Find products from China easily and confidently.</span>
-          </div>
+      <div class="header-profile" :class="{ 'is-guest': !loggedIn }">
+        <div class="avatar">
+          {{ loggedIn ? avatarInitial : "Y" }}
         </div>
-      </header>
+        <div class="header-copy">
+          <h1>{{ loggedIn ? "Hello! 👋" : "Welcome to YiwuHub" }}</h1>
+          <p v-if="loggedIn">
+            {{ displayEmail }}
+          </p>
+          <span>Find products from China easily and confidently.</span>
+        </div>
+      </div>
+    </header>
 
-      <main class="profile-container profile-content">
-        <section class="quick-card">
-          <div
-            v-for="item in quickEntries"
-            :key="item.title"
-            class="quick-item"
-            role="button"
-            tabindex="0"
-            @click="handleNavigate(item.path)"
-          >
-            <span class="quick-icon" :class="item.color">
-              <Icon v-if="item.path?.startsWith('/calculator')" :icon="item.icon" />
-              <van-icon v-else :name="item.icon" />
+    <main class="profile-container profile-content">
+      <section class="quick-card">
+        <div
+          v-for="item in quickEntries"
+          :key="item.title"
+          class="quick-item"
+          role="button"
+          tabindex="0"
+          @click="handleNavigate(item.path)"
+        >
+          <span class="quick-icon" :class="item.color">
+            <Icon v-if="item.path?.startsWith('/calculator')" :icon="item.icon" />
+            <van-icon v-else :name="item.icon" />
+          </span>
+          <strong>{{ item.title }}</strong>
+        </div>
+      </section>
+
+      <section class="menu-card">
+        <div
+          class="menu-item verification-menu-item"
+          :class="[
+            `is-${verificationMenu.className}`,
+            { 'is-disabled': verificationStatus === 1 },
+          ]"
+          :role="verificationStatus === 1 ? undefined : 'button'"
+          :tabindex="verificationStatus === 1 ? -1 : 0"
+          @click="handleVerificationNavigate"
+        >
+          <span class="menu-icon verification-menu-icon">
+            <van-icon :name="verificationMenu.icon" />
+          </span>
+          <span class="menu-copy">
+            <span class="verification-title-row">
+              <strong>User Verification</strong>
+              <small
+                v-if="verificationMenu.label"
+                class="verification-status"
+              >
+                {{ verificationMenu.label }}
+              </small>
             </span>
+            <small>{{ verificationMenu.description }}</small>
+          </span>
+          <span v-if="verificationStatus === 1" class="verified-lock">
+            <van-icon name="lock" />
+            Verified
+          </span>
+          <van-icon v-else class="menu-arrow" name="arrow" />
+        </div>
+
+        <div
+          v-for="item in menuItems"
+          :key="item.title"
+          class="menu-item"
+          role="button"
+          tabindex="0"
+          @click="handleNavigate(item.path)"
+        >
+          <span class="menu-icon">
+            <van-icon :name="item.icon" />
+          </span>
+          <span class="menu-copy">
             <strong>{{ item.title }}</strong>
-          </div>
-        </section>
-
-        <section class="menu-card">
-          <div
-            class="menu-item verification-menu-item"
-            :class="[
-              `is-${verificationMenu.className}`,
-              { 'is-disabled': verificationStatus === 1 },
-            ]"
-            :role="verificationStatus === 1 ? undefined : 'button'"
-            :tabindex="verificationStatus === 1 ? -1 : 0"
-            @click="handleVerificationNavigate"
-          >
-            <span class="menu-icon verification-menu-icon">
-              <van-icon :name="verificationMenu.icon" />
-            </span>
-            <span class="menu-copy">
-              <span class="verification-title-row">
-                <strong>User Verification</strong>
-                <small
-                  v-if="verificationMenu.label"
-                  class="verification-status"
-                >
-                  {{ verificationMenu.label }}
-                </small>
-              </span>
-              <small>{{ verificationMenu.description }}</small>
-            </span>
-            <span v-if="verificationStatus === 1" class="verified-lock">
-              <van-icon name="lock" />
-              Verified
-            </span>
-            <van-icon v-else class="menu-arrow" name="arrow" />
-          </div>
-
-          <div
-            v-for="item in menuItems"
-            :key="item.title"
-            class="menu-item"
-            role="button"
-            tabindex="0"
-            @click="handleNavigate(item.path)"
-          >
-            <span class="menu-icon">
-              <van-icon :name="item.icon" />
-            </span>
-            <span class="menu-copy">
-              <strong>{{ item.title }}</strong>
-              <small>{{ item.description }}</small>
-            </span>
-            <van-icon class="menu-arrow" name="arrow" />
-          </div>
-        </section>
-
-        <div class="logout-card" role="button" tabindex="0" @click="handleLogout">
-          <Icon class="logout-icon" icon="hugeicons:logout-03" />
-          <span>Log Out</span>
+            <small>{{ item.description }}</small>
+          </span>
+          <van-icon class="menu-arrow" name="arrow" />
         </div>
-      </main>
-    </template>
+      </section>
+
+      <div v-if="loggedIn" class="logout-card" role="button" tabindex="0" @click="handleLogout">
+        <Icon class="logout-icon" icon="hugeicons:logout-03" />
+        <span>Log Out</span>
+      </div>
+    </main>
   </div>
 </template>
 
@@ -351,6 +355,19 @@ onMounted(() => {
   justify-content: space-between;
 }
 
+.header-login-button {
+  min-width: 72px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  padding: 0 18px;
+  color: #ffffff;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .settings-button {
   width: 36px;
   height: 36px;
@@ -374,6 +391,10 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 15px;
+}
+
+.header-profile.is-guest {
+  margin-top: 20px;
 }
 
 .avatar {

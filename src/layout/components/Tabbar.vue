@@ -50,7 +50,7 @@ const tabbarRoutes = computed(() => {
 })
 
 function getTabbarTarget(path: string) {
-  if (!isLoggedIn() && ["/favorites", "/profile"].includes(path)) {
+  if (!isLoggedIn() && path === "/favorites") {
     return "/login"
   }
 
