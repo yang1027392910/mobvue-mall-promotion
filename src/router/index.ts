@@ -96,6 +96,20 @@ export const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: "/hot-products",
+    component: () => import("@/pages/hotProducts/index.vue"),
+    name: "HotProducts",
+    meta: {
+      title: "Hot Products",
+      layout: {
+        navBar: {
+          showNavBar: false,
+          showLeftArrow: false
+        }
+      }
+    }
+  },
+  {
     path: "/product-card",
     component: () => import("@/pages/productCard/index.vue"),
     name: "ProductCard",

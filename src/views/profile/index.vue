@@ -82,7 +82,7 @@ const verificationMenu = computed(() => {
   const statusMap = {
     [-1]: {
       description: "Verify your business information",
-      icon: "warning-o",
+      icon: "certificate",
       label: "",
       className: "not-verified"
     },

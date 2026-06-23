@@ -11,6 +11,7 @@ import { useUserStore } from "@/pinia/stores/user"
 import { emailCodeLogin, sendEmailCode } from "./apis"
 
 const router = useRouter()
+const route = useRoute()
 
 const userStore = useUserStore()
 
@@ -35,6 +36,11 @@ const sendCodeText = computed(() => {
   if (sendingCode.value) return "Sending..."
   if (countdown.value > 0) return `${countdown.value}s`
   return "Send Code"
+})
+
+const loginRedirect = computed(() => {
+  const redirect = String(route.query.redirect || "")
+  return redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/"
 })
 
 interface LoginErrorResponse {
@@ -139,7 +145,7 @@ function onSubmit() {
   }).then(({ data }) => {
     loadingToast.close()
     userStore.setToken(data.token, data.user)
-    router.push("/")
+    router.push(loginRedirect.value)
   }).catch((error) => {
     loadingToast.close()
     loginFormData.code = ""

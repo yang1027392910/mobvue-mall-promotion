@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { RawBannerItem } from "@@/apis/banner/type"
-import type { HotProductType, RawHotProductItem } from "@@/apis/hotProduct/type"
+import type { RawHomeNavigationItem } from "@@/apis/homeNavigation/type"
+import type { RawHotProductItem } from "@@/apis/hotProduct/type"
 import { getBannerListApi } from "@@/apis/banner"
+import { getHomeNavigationListApi } from "@@/apis/homeNavigation"
 import { getHotProductListApi } from "@@/apis/hotProduct"
+import { isLoggedIn } from "@@/utils/guest-access"
 import { Icon } from "@iconify/vue"
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
-import homeBanner from "@/assets/home/banner.png"
+import homeBanner from "@/assets/home/banner-suppliers.png"
 import homeLogo from "@/assets/home/logo.png"
 import rankNo1 from "@/assets/home/no_1.png"
 import rankNo2 from "@/assets/home/no_2.png"
@@ -30,14 +33,69 @@ interface BannerItem {
   jumpValue: string
 }
 
+interface ListLikeData<T> {
+  data?: T[]
+  list?: T[]
+  records?: T[]
+  rows?: T[]
+  items?: T[]
+}
+
+interface HomeNavigationItem {
+  id: number | string
+  title: string
+  value: string
+  icon: string
+  jumpType: string
+  jumpValue: string
+  color: string
+}
+
 type BannerJumpType = "product" | "category" | "link" | "none"
 
-const activeTab = ref<HotProductType>(1)
 const router = useRouter()
-const searchValue = ref("")
 const loading = ref(false)
 const errorText = ref("")
-const showAllProducts = ref(false)
+const products = ref<ProductItem[]>([])
+const rankBadgeImages = [rankNo1, rankNo2, rankNo3]
+const homeNavigations = ref<HomeNavigationItem[]>([
+  {
+    id: "suppliers",
+    title: "Verified Suppliers",
+    value: "500+",
+    icon: "solar:verified-check-bold-duotone",
+    jumpType: "path",
+    jumpValue: "/logistics-suppliers",
+    color: "#246bfe"
+  },
+  {
+    id: "products",
+    title: "Products",
+    value: "10,000+",
+    icon: "solar:clipboard-list-bold-duotone",
+    jumpType: "path",
+    jumpValue: "/hot-products",
+    color: "#06a77d"
+  },
+  {
+    id: "profit",
+    title: "Profit Potential",
+    value: "₱85.2M+",
+    icon: "solar:hand-money-bold-duotone",
+    jumpType: "path",
+    jumpValue: "/calculator?mode=weight&from=profile",
+    color: "#f4a900"
+  },
+  {
+    id: "support",
+    title: "Support",
+    value: "24/7",
+    icon: "solar:headphones-round-sound-bold-duotone",
+    jumpType: "path",
+    jumpValue: "/procurement-support",
+    color: "#246bfe"
+  }
+])
 const banners = ref<BannerItem[]>([
   {
     id: "local-banner",
@@ -47,42 +105,6 @@ const banners = ref<BannerItem[]>([
     jumpValue: ""
   }
 ])
-const homeHeaderRef = ref<HTMLElement | null>(null)
-const tabsOffsetTop = ref(62)
-let headerResizeObserver: ResizeObserver | null = null
-
-const tabs: Array<{ title: string, name: HotProductType }> = [
-  { title: "Today", name: 1 },
-  { title: "This Week", name: 2 },
-  { title: "This Month", name: 3 },
-  { title: "New Alerts", name: 4 }
-]
-
-const tabIconMap: Record<HotProductType, string> = {
-  1: "solar:fire-bold-duotone",
-  2: "solar:calendar-bold-duotone",
-  3: "solar:chart-square-bold-duotone",
-  4: "solar:bell-bold-duotone"
-}
-
-const tabTitleMap: Record<HotProductType, string> = {
-  1: "Today",
-  2: "Week",
-  3: "Month",
-  4: "Alerts"
-}
-
-const products = ref<ProductItem[]>([])
-const rankBadgeImages = [rankNo1, rankNo2, rankNo3]
-
-const filteredProducts = computed(() => {
-  const keyword = searchValue.value.trim().toLowerCase()
-  if (!keyword) {
-    return products.value
-  }
-  return products.value.filter(item => item.name.toLowerCase().includes(keyword))
-})
-const visibleProducts = computed(() => showAllProducts.value ? filteredProducts.value : filteredProducts.value.slice(0, 3))
 
 function toNumber(value: number | string | undefined, fallback = 0) {
   const numberValue = Number(value)
@@ -93,18 +115,6 @@ function formatMoney(value: number | string | undefined) {
   return `₱${toNumber(value).toFixed(2)}`
 }
 
-function getProductImage(image?: string) {
-  if (!image) return ""
-  if (/^https?:\/\//.test(image)) return image
-
-  const imageBaseUrl = import.meta.env.VITE_IMAGE_BASE_URL || ""
-  return `${imageBaseUrl.replace(/\/$/, "")}/${image.replace(/^\//, "")}`
-}
-
-function getRankBadgeImage(index: number) {
-  return rankBadgeImages[index] || ""
-}
-
 function getAssetUrl(url?: string) {
   if (!url) return ""
   if (/^https?:\/\//.test(url)) return url
@@ -113,21 +123,13 @@ function getAssetUrl(url?: string) {
   return `${imageBaseUrl.replace(/\/$/, "")}/${url.replace(/^\//, "")}`
 }
 
-function getBannerDataList(data: RawBannerItem[] | BannerListLikeData) {
+function getDataList<T>(data: T[] | ListLikeData<T>) {
   if (Array.isArray(data)) return data
   if (Array.isArray(data.data)) return data.data
   if (Array.isArray(data.list)) return data.list
   if (Array.isArray(data.records)) return data.records
   if (Array.isArray(data.rows)) return data.rows
   return Array.isArray(data.items) ? data.items : []
-}
-
-interface BannerListLikeData {
-  data?: RawBannerItem[]
-  list?: RawBannerItem[]
-  records?: RawBannerItem[]
-  rows?: RawBannerItem[]
-  items?: RawBannerItem[]
 }
 
 function normalizeBanner(item: RawBannerItem, index: number): BannerItem {
@@ -155,23 +157,7 @@ function getBannerJumpValue(item: RawBannerItem) {
   if (item.productId !== undefined) return String(item.productId)
   if (item.categoryId !== undefined) return String(item.categoryId)
   if (value !== undefined) return String(value)
-
   return String(item.linkUrl ?? item.link ?? item.path ?? "")
-}
-
-function getHotProductDataList(data: RawHotProductItem[] | {
-  data?: RawHotProductItem[]
-  list?: RawHotProductItem[]
-  records?: RawHotProductItem[]
-  rows?: RawHotProductItem[]
-  items?: RawHotProductItem[]
-}) {
-  if (Array.isArray(data)) return data
-  if (Array.isArray(data.data)) return data.data
-  if (Array.isArray(data.list)) return data.list
-  if (Array.isArray(data.records)) return data.records
-  if (Array.isArray(data.rows)) return data.rows
-  return Array.isArray(data.items) ? data.items : []
 }
 
 function normalizeHotProduct(item: RawHotProductItem, index: number): ProductItem {
@@ -184,7 +170,7 @@ function normalizeHotProduct(item: RawHotProductItem, index: number): ProductIte
   return {
     id: toNumber(item.productId ?? item.id ?? item.spuId ?? item.hotProductId, index + 1),
     name: String(item.name ?? item.productName ?? item.goodsName ?? item.title ?? "Unnamed Product"),
-    image: getProductImage(String(item.image ?? item.imageUrl ?? item.productImage ?? item.mainImage ?? item.picUrl ?? item.cover ?? item.coverUrl ?? "")),
+    image: getAssetUrl(String(item.image ?? item.imageUrl ?? item.productImage ?? item.mainImage ?? item.picUrl ?? item.cover ?? item.coverUrl ?? "")),
     score: toNumber(item.score ?? item.tiktokScore ?? item.tikTokScore ?? item.hotScore).toFixed(1),
     cost: formatMoney(cost),
     price: formatMoney(price),
@@ -192,22 +178,80 @@ function normalizeHotProduct(item: RawHotProductItem, index: number): ProductIte
   }
 }
 
+function getRankBadgeImage(index: number) {
+  return rankBadgeImages[index % products.value.length] || ""
+}
+
+function getProductRank(index: number) {
+  return index % products.value.length + 1
+}
+
 function handleProductClick(product: ProductItem) {
-  console.log(product, "product222")
-  router.push({
-    path: "/product-card",
-    query: {
-      id: product.id
-    }
-  })
+  router.push({ path: "/product-card", query: { id: product.id } })
 }
 
 function handleCustomerServiceClick() {
   router.push("/procurement-support")
 }
 
-function handleToggleProducts() {
-  showAllProducts.value = !showAllProducts.value
+function handleViewAll() {
+  router.push("/hot-products")
+}
+
+function handleProfitCalculator(target = "/calculator?mode=weight&from=profile") {
+  if (isLoggedIn()) {
+    router.push(target)
+    return
+  }
+
+  router.push({
+    path: "/login",
+    query: {
+      redirect: target
+    }
+  })
+}
+
+function normalizeHomeNavigation(item: RawHomeNavigationItem, index: number): HomeNavigationItem {
+  return {
+    id: item.id ?? `${item.title || "navigation"}-${index}`,
+    title: String(item.title ?? ""),
+    value: String(item.value ?? ""),
+    icon: String(item.icon || "solar:widget-2-bold-duotone"),
+    jumpType: String(item.jumpType || "path").toLowerCase(),
+    jumpValue: String(item.jumpValue || ""),
+    color: String(item.color || "#246bfe")
+  }
+}
+
+function handleNavigationClick(item: HomeNavigationItem) {
+  if (!item.jumpValue) return
+
+  if (item.jumpValue.startsWith("/calculator")) {
+    handleProfitCalculator(item.jumpValue)
+    return
+  }
+
+  if (item.jumpType === "link" || /^https?:\/\//.test(item.jumpValue)) {
+    window.location.href = item.jumpValue
+    return
+  }
+
+  router.push(item.jumpValue)
+}
+
+function handleBannerClick(banner: BannerItem) {
+  if (banner.jumpType === "none" || !banner.jumpValue) return
+
+  if (banner.jumpType === "product") {
+    router.push({ path: "/product-card", query: { id: banner.jumpValue } })
+  } else if (banner.jumpType === "category") {
+    router.push({ path: "/product-list", query: { categoryId: banner.jumpValue } })
+  } else if (/^https?:\/\//.test(banner.jumpValue)) {
+    window.location.href = banner.jumpValue
+  } else {
+    router.push(banner.jumpValue)
+  }
 }
 
 async function getHotProductList() {
@@ -215,8 +259,8 @@ async function getHotProductList() {
   errorText.value = ""
 
   try {
-    const { data } = await getHotProductListApi({ hotType: activeTab.value })
-    products.value = getHotProductDataList(data).map(normalizeHotProduct)
+    const { data } = await getHotProductListApi({ hotType: 1 })
+    products.value = getDataList(data).map(normalizeHotProduct)
   } catch (error) {
     products.value = []
     errorText.value = error instanceof Error ? error.message : "Failed to load hot products"
@@ -227,508 +271,625 @@ async function getHotProductList() {
 
 async function getBannerList() {
   try {
-    const { data } = await getBannerListApi({
-      scene: "home"
-    })
-    const apiBanners = getBannerDataList(data)
+    const { data } = await getBannerListApi({ scene: "home" })
+    const apiBanners = getDataList(data)
       .filter(item => !item.scene || item.scene === "home")
       .filter(item => item.status === undefined || Number(item.status) === 1)
       .sort((a, b) => toNumber(a.sort) - toNumber(b.sort))
       .map(normalizeBanner)
       .filter(item => item.image)
 
-    if (apiBanners.length) {
-      banners.value = apiBanners
-    }
+    if (apiBanners.length) banners.value = [banners.value[0], ...apiBanners]
   } catch {
-    // Keep the local banner as fallback when the banner API is unavailable.
+    // Keep the local banner as fallback.
   }
 }
 
-function handleBannerClick(banner: BannerItem) {
-  console.log(banner, "banner4444")
-  if (banner.jumpType === "none" || !banner.jumpValue) return
+async function getHomeNavigationList() {
+  try {
+    const { data } = await getHomeNavigationListApi()
+    const navigationList = getDataList(data)
+      .filter(item => item.status === undefined || Number(item.status) === 1)
+      .sort((a, b) => toNumber(a.sort) - toNumber(b.sort))
+      .map(normalizeHomeNavigation)
+      .filter(item => item.title || item.value)
 
-  if (banner.jumpType === "product") {
-    router.push({
-      path: "/product-card",
-      query: {
-        id: banner.jumpValue
-      }
-    })
-    return
+    if (navigationList.length) homeNavigations.value = navigationList
+  } catch {
+    // Keep the default navigation items when the API is unavailable.
   }
-
-  if (banner.jumpType === "category") {
-    router.push({
-      path: "/product-list",
-      query: {
-        categoryId: banner.jumpValue
-      }
-    })
-    return
-  }
-
-  if (/^https?:\/\//.test(banner.jumpValue)) {
-    window.location.href = banner.jumpValue
-    return
-  }
-
-  router.push(banner.jumpValue)
-}
-
-function updateTabsOffsetTop() {
-  tabsOffsetTop.value = homeHeaderRef.value?.offsetHeight || 0
-}
-
-async function setupStickyTabsOffset() {
-  await nextTick()
-  updateTabsOffsetTop()
-
-  if (!homeHeaderRef.value) return
-
-  headerResizeObserver = new ResizeObserver(updateTabsOffsetTop)
-  headerResizeObserver.observe(homeHeaderRef.value)
 }
 
 onMounted(() => {
   getBannerList()
   getHotProductList()
-  setupStickyTabsOffset()
-})
-
-onBeforeUnmount(() => {
-  headerResizeObserver?.disconnect()
-})
-
-watch(activeTab, () => {
-  showAllProducts.value = false
-  getHotProductList()
+  getHomeNavigationList()
 })
 </script>
 
 <template>
-  <div class="page-home" :style="{ '--home-tabs-top': `${tabsOffsetTop}px` }">
-    <div ref="homeHeaderRef" class="home-header">
-      <div class="home-title-row">
-        <img class="home-logo" :src="homeLogo" alt="YiwuHub">
-        <div class="home-actions">
-          <button class="notification-button" type="button" aria-label="Contact customer service" @click="handleCustomerServiceClick">
-            <Icon icon="mdi:customer-service" class="home-icon" />
-          </button>
-        </div>
-      </div>
-    </div>
+  <div class="page-home">
+    <header class="home-header">
+      <img class="home-logo" :src="homeLogo" alt="YiwuHub">
+      <button class="service-button" type="button" aria-label="Contact customer service" @click="handleCustomerServiceClick">
+        <Icon icon="mdi:customer-service" />
+      </button>
+    </header>
 
     <div class="home-banner">
       <van-swipe
         class="home-banner-swipe"
         :autoplay="3500"
-        indicator-color="#ffffff"
+        :duration="600"
+        :loop="true"
+        :show-indicators="false"
       >
         <van-swipe-item
           v-for="banner in banners"
           :key="banner.id"
+          class="home-banner-item"
           @click="handleBannerClick(banner)"
         >
           <img :src="banner.image" :alt="banner.title">
+          <div v-if="banner.id === 'local-banner'" class="home-banner-copy">
+            <h1>
+              Find Verified<br>
+              China Suppliers
+            </h1>
+            <h2>
+              Grow Your Business in<br>
+              the Philippines
+            </h2>
+            <ul>
+              <li>
+                <Icon icon="solar:verified-check-bold" />
+                Verified Suppliers
+              </li>
+              <li>
+                <Icon icon="solar:calculator-bold" />
+                Profit Calculators
+              </li>
+              <li>
+                <Icon icon="solar:shield-check-bold" />
+                Fast &amp; Reliable
+              </li>
+            </ul>
+          </div>
         </van-swipe-item>
       </van-swipe>
     </div>
 
-    <div class="home-tabs" role="tablist" aria-label="Product ranking filters">
+    <section
+      class="platform-stats"
+      :class="{ 'platform-stats--scrollable': homeNavigations.length > 4 }"
+      aria-label="Platform statistics"
+    >
       <div
-        v-for="tab in tabs"
-        :key="tab.name"
-        class="home-tab"
-        :class="{ 'home-tab--active': activeTab === tab.name }"
-        role="tab"
-        :aria-selected="activeTab === tab.name"
-        @click="activeTab = tab.name"
+        class="platform-stats__track"
+        :style="{ '--navigation-count': Math.min(homeNavigations.length, 4) }"
       >
-        <span class="ranking-tab">
-          <Icon class="ranking-tab__icon" :icon="tabIconMap[tab.name]" />
-          <span>{{ tabTitleMap[tab.name] }}</span>
-        </span>
+        <button
+          v-for="item in homeNavigations"
+          :key="item.id"
+          class="platform-stat"
+          type="button"
+          @click="handleNavigationClick(item)"
+        >
+          <span
+            class="platform-stat__icon"
+            :style="{ '--navigation-color': item.color }"
+          >
+            <Icon size="2rem" :icon="item.icon" />
+          </span>
+          <strong>{{ item.value }}</strong>
+          <span>{{ item.title }}</span>
+        </button>
       </div>
-    </div>
+    </section>
 
-    <div class="product-list">
+    <section class="today-products">
+      <div class="section-heading">
+        <h2>Hot Products Today</h2>
+        <button type="button" @click="handleViewAll">
+          View All
+          <Icon icon="mingcute:right-line" />
+        </button>
+      </div>
+
       <van-loading v-if="loading" class="home-loading" color="#1677ff" />
-
-      <van-empty
-        v-else-if="errorText"
-        image="error"
-        :description="errorText"
-      >
+      <van-empty v-else-if="errorText" image="error" :description="errorText">
         <van-button size="small" type="primary" @click="getHotProductList">
           Retry
         </van-button>
       </van-empty>
+      <van-empty v-else-if="products.length === 0" description="No products found" />
 
-      <van-empty
-        v-else-if="filteredProducts.length === 0"
-        description="No products found"
-      />
-
-      <template v-else>
-        <div
-          v-for="(item, index) in visibleProducts"
-          :key="item.id"
-          class="product-card"
-          @click="handleProductClick(item)"
-        >
-          <div class="product-card-left">
-            <div class="product-image-wrap">
-              <div class="product-image-frame">
-                <img class="product-image" :src="item.image" :alt="item.name">
-              </div>
+      <div v-else class="featured-products">
+        <div class="product-track">
+          <article
+            v-for="(item, index) in products.slice(0, 3)"
+            :key="item.id"
+            class="today-card"
+            @click="handleProductClick(item)"
+          >
+            <div class="today-card__image-wrap">
+              <img class="today-card__image" :src="item.image" :alt="item.name">
               <img
                 v-if="getRankBadgeImage(index)"
-                class="product-rank"
+                class="today-card__rank"
                 :src="getRankBadgeImage(index)"
-                :alt="`No. ${index + 1}`"
+                :alt="`No. ${getProductRank(index)}`"
               >
             </div>
-          </div>
-          <div class="product-card-right">
-            <div class="product-name">
-              {{ item.name }}
+            <h3>{{ item.name }}</h3>
+            <div class="today-card__row">
+              <span>China Cost</span><strong>{{ item.cost }}</strong>
             </div>
-            <div class="product-meta">
-              <div class="meta-row">
-                <span class="meta-label">TikTok Score</span>
-                <span class="meta-value">{{ item.score }}</span>
-              </div>
-              <div class="meta-row">
-                <span class="meta-label">China Cost</span>
-                <span class="meta-value">{{ item.cost }}</span>
-              </div>
+            <div class="today-card__row">
+              <span>PH Price</span><strong>{{ item.price }}</strong>
             </div>
-            <div class="product-footer">
-              <div class="product-footer-item">
-                <span class="footer-label">PH Price</span>
-                <span class="footer-value">{{ item.price }}</span>
-              </div>
-              <div class="product-footer-item">
-                <span class="footer-label">Profit</span>
-                <span class="footer-value profit">{{ item.profit }}</span>
-              </div>
+            <div class="today-card__row">
+              <span>Profit / Item</span><strong>{{ item.profit }}</strong>
             </div>
-          </div>
+            <!-- <button type="button">
+              View Details
+            </button> -->
+          </article>
         </div>
-        <button
-          v-if="filteredProducts.length > 3"
-          class="view-all-products"
-          type="button"
-          @click="handleToggleProducts"
-        >
-          <span>{{ showAllProducts ? "Show Less" : "View All" }}</span>
-          <Icon :icon="showAllProducts ? 'mingcute:up-line' : 'mingcute:down-line'" />
-        </button>
-      </template>
-    </div>
+      </div>
+    </section>
+
+    <section class="why-choose">
+      <h2>Why Choose YiwuHub?</h2>
+      <div class="why-choose__grid">
+        <div class="why-choose__item">
+          <span class="why-choose__icon">
+            <Icon icon="solar:user-id-bold-duotone" />
+          </span>
+          <strong>Verified Suppliers</strong>
+          <span>Factory Direct</span>
+        </div>
+        <div class="why-choose__item">
+          <span class="why-choose__icon">
+            <Icon icon="solar:calculator-bold-duotone" />
+          </span>
+          <strong>Profit Calculator</strong>
+          <span>Know Before You Buy</span>
+        </div>
+        <div class="why-choose__item">
+          <span class="why-choose__icon">
+            <Icon icon="solar:shield-check-bold-duotone" />
+          </span>
+          <strong>Logistics Support</strong>
+          <span>Door-to-Door Delivery</span>
+        </div>
+        <div class="why-choose__item">
+          <span class="why-choose__icon">
+            <Icon icon="solar:shield-star-bold-duotone" />
+          </span>
+          <strong>Secure &amp; Reliable</strong>
+          <span>100% Safe Platform</span>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
 .page-home {
-  min-height: calc(100vh - 10px);
-  padding: var(--home-tabs-top) 12px 88px;
-  overflow-x: clip;
+  min-height: 100vh;
+  padding: 50px 12px 88px;
+  overflow-x: hidden;
   background: #f7faff;
 }
+
 .home-header {
   position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
+  inset: 0 0 auto;
   z-index: 20;
-  padding: 18px 12px 8px;
-  background: #f7faff;
-}
-.home-title-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 36px;
+  min-height: 50px;
+  padding: 0 12px 0;
+  background: #f7faff;
 }
+
 .home-logo {
-  display: block;
   width: 118px;
   height: 36px;
   object-fit: contain;
   object-position: left center;
-  flex-shrink: 0;
 }
-.home-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-.notification-button {
-  border: 0;
-  padding: 0;
-  font: inherit;
-  background: transparent;
-  color: #64748b;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
+
+.service-button {
+  display: grid;
+  width: 36px;
   height: 36px;
-}
-.home-icon {
-  font-size: 23px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #1677ff;
+  font-size: 24px;
+  place-items: center;
 }
+
 .home-banner {
-  margin: 8px 0 0;
+  position: relative;
+  width: calc(100% + 24px);
+  margin-left: -10px;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 0;
   background: #eaf1ff;
   box-shadow: 0 8px 24px rgba(22, 119, 255, 0.08);
 }
+
 .home-banner-swipe {
   width: 100%;
-  aspect-ratio: 343 / 128;
+  aspect-ratio: 343 / 220;
 }
+
 .home-banner :deep(.van-swipe__track),
 .home-banner :deep(.van-swipe-item) {
+  width: 100%;
   height: 100%;
 }
+
 .home-banner img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
 }
-.home-banner :deep(.van-swipe__indicators) {
-  bottom: 10px;
+
+.home-banner-item {
+  position: relative;
 }
-.home-banner :deep(.van-swipe__indicator) {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(7, 27, 58, 0.16);
-  opacity: 1;
-  box-shadow: 0 2px 6px rgba(7, 27, 58, 0.18);
-}
-.home-banner :deep(.van-swipe__indicator--active) {
-  width: 20px;
-  background: #1677ff;
-  border-color: rgba(255, 255, 255, 0.85);
-}
-.home-tabs {
-  position: sticky;
-  top: calc(var(--home-tabs-top) - 1px);
-  z-index: 19;
-  display: flex;
-  justify-content: space-between;
-  gap: 0;
-  margin: 12px 0 16px;
-  padding: 5px 0;
-  border-radius: 14px;
-  background: #ffffff;
-  isolation: isolate;
-}
-.home-tabs::before {
+
+.home-banner-copy {
   position: absolute;
-  top: -2px;
-  right: -12px;
-  bottom: 0;
-  left: -12px;
-  z-index: -1;
-  background: #f7faff;
-  content: "";
+  top: 17px;
+  left: 17px;
+  z-index: 2;
+  width: 48%;
+  color: #10245d;
+  pointer-events: none;
 }
-.home-tab {
-  flex: 1;
-  min-width: 0;
+
+.home-banner-copy h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 21px;
+  letter-spacing: -0.4px;
+}
+
+.home-banner-copy h2 {
+  margin: 7px 0 9px;
+  color: #0756f3;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 17px;
+}
+
+.home-banner-copy ul {
   display: flex;
-  justify-content: center;
+  margin: 0;
   padding: 0;
-  cursor: pointer;
-  transition: transform 0.18s ease;
-  -webkit-tap-highlight-color: transparent;
+  flex-direction: column;
+  gap: 5px;
+  list-style: none;
 }
-.home-tab:active {
-  transform: scale(0.96);
-}
-.ranking-tab {
+
+.home-banner-copy li {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 72px;
-  height: 32px;
-  padding: 0 8px;
-  border-radius: 999px;
-  color: #94a3b8;
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  background: transparent;
-}
-.ranking-tab__icon {
-  width: 20px;
-  height: 20px;
-  color: currentColor;
-  font-size: 20px;
-  flex-shrink: 0;
-}
-.home-tab--active .ranking-tab {
-  color: #ffffff;
+  gap: 5px;
+  color: #172554;
+  font-size: 8px;
   font-weight: 700;
-  background: #1677ff;
-  box-shadow: 0 8px 18px rgba(22, 119, 255, 0.18);
 }
-.product-list {
+
+.home-banner-copy li svg {
+  width: 12px;
+  height: 12px;
+  padding: 2px;
+  border-radius: 50%;
+  background: #e8f1ff;
+  color: #1267f6;
+}
+
+.platform-stats {
+  position: relative;
+  z-index: 3;
+  margin: -20px 0 0;
+  border: 1px solid rgba(219, 228, 244, 0.8);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 7px 20px rgba(42, 73, 122, 0.1);
+  overflow: hidden;
+}
+
+.platform-stats__track {
+  display: grid;
+  grid-template-columns: repeat(var(--navigation-count), minmax(0, 1fr));
+  gap: 4px;
+  padding: 11px 0 10px;
+}
+
+.platform-stats--scrollable {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.platform-stats--scrollable::-webkit-scrollbar {
+  display: none;
+}
+
+.platform-stats--scrollable .platform-stats__track {
   display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding-bottom: 88px;
+  width: max-content;
+  min-width: 100%;
 }
+
+.platform-stats--scrollable .platform-stat {
+  width: calc((100vw - 26px) / 4);
+  flex: 0 0 calc((100vw - 26px) / 4);
+  scroll-snap-align: start;
+}
+
+.platform-stat {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.16s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.platform-stat:active {
+  transform: scale(0.94);
+}
+
+.platform-stat__icon {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  font-size: 25px;
+  place-items: center;
+}
+
+.platform-stat__icon {
+  background: color-mix(in srgb, var(--navigation-color) 12%, white);
+  color: var(--navigation-color);
+}
+
+.platform-stat strong {
+  color: #102044;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.platform-stat > span:last-child {
+  overflow: hidden;
+  width: 100%;
+  margin-top: 2px;
+  color: #71809b;
+  font-size: 7px;
+  line-height: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.today-products {
+  margin-top: 5px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.section-heading h2 {
+  margin: 0;
+  color: #172554;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.section-heading button {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 0 6px 12px;
+  border: 0;
+  background: transparent;
+  color: #1677ff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .home-loading {
   display: flex;
   justify-content: center;
-  padding: 64px 0;
+  padding: 52px 0;
 }
-.product-card {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 14px;
-  margin-bottom: 10px;
-  border: 1px solid #eaf1ff;
-  border-radius: 18px;
-  background: #ffffff;
-  box-shadow: 0 8px 24px rgba(22, 119, 255, 0.06);
-  cursor: pointer;
-  transition: all 0.18s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-.product-card:active {
-  transform: scale(0.985);
-}
-.view-all-products {
+
+.featured-products {
   width: 100%;
-  height: 44px;
-  border: 0;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+}
+
+.product-track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  margin-top: 2px;
-  color: #1677ff;
-  font-size: 14px;
-  font-weight: 700;
-  background: #ffffff;
-  box-shadow: 0 8px 24px rgba(22, 119, 255, 0.06);
-  transition: all 0.18s ease;
-  -webkit-tap-highlight-color: transparent;
+  padding: 2px 0 12px;
 }
-.view-all-products:active {
-  transform: scale(0.98);
-}
-.product-card-left {
-  flex-shrink: 0;
-}
-.product-image-wrap {
-  position: relative;
-  width: 116px;
-  height: 116px;
-  overflow: visible;
-}
-.product-image-frame {
-  width: 100%;
-  height: 100%;
+
+.today-card {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #e8efff;
   border-radius: 14px;
-  background: #f5f8ff;
-  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 6px 16px rgba(22, 119, 255, 0.1);
+  cursor: pointer;
 }
-.product-image {
+
+.today-card__image-wrap {
+  position: relative;
+  aspect-ratio: 1 / 1;
+}
+
+.today-card__image {
   display: block;
   width: 100%;
   height: 100%;
+  border-radius: 10px;
+  background: #f4f7ff;
   object-fit: cover;
 }
-.product-rank {
+
+.today-card__rank {
   position: absolute;
-  top: -15px;
-  left: -10px;
-  display: block;
-  width: 46px;
-  height: 46px;
+  top: -9px;
+  left: -9px;
+  width: 34px;
+  height: 34px;
   object-fit: contain;
-  pointer-events: none;
 }
-.product-card-right {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.product-name {
-  color: #111827;
-  font-size: 14px;
-  font-weight: 600;
-  /* line-height: 22px; */
-  display: -webkit-box;
+
+.today-card h3 {
+  height: 34px;
+  padding: 2px 0;
+  margin: 3px 0;
   overflow: hidden;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 17px;
+  display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
-.product-meta {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0 12px;
-}
-.meta-row {
+
+.today-card__row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 4px;
-  min-width: 0;
-}
-.meta-label {
+  min-height: 19px;
   color: #64748b;
+  font-size: 10px;
+}
+
+.today-card__row strong {
+  color: #172554;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.today-card > button {
+  width: 100%;
+  height: 26px;
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: #1677ff;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.why-choose {
+  margin-top: 10px;
+  padding: 12px 8px 13px;
+  border: 1px solid #e4edff;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f7faff 0%, #edf5ff 100%);
+  box-shadow: 0 6px 18px rgba(22, 119, 255, 0.07);
+}
+
+.why-choose h2 {
+  margin: 0 0 12px;
+  color: #172554;
   font-size: 13px;
-  line-height: 17px;
-}
-.meta-value {
-  color: #020617;
-  font-size: 15px;
   font-weight: 800;
-  line-height: 20px;
 }
-.product-footer {
+
+.why-choose__grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.product-footer-item {
+
+.why-choose__item {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
   min-width: 0;
+  align-items: center;
+  flex-direction: column;
+  padding: 0 4px;
+  text-align: center;
 }
-.footer-label {
-  color: #64748b;
-  font-size: 13px;
-  line-height: 17px;
+
+.why-choose__item + .why-choose__item::before {
+  position: absolute;
+  top: 8px;
+  bottom: 5px;
+  left: 0;
+  width: 1px;
+  background: #e1eafd;
+  content: "";
 }
-.footer-value {
-  color: #020617;
-  font-size: 15px;
+
+.why-choose__icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 5px;
+  border-radius: 50%;
+  background: #eaf2ff;
+  color: #246bfe;
+  font-size: 21px;
+  box-shadow: 0 4px 10px rgba(36, 107, 254, 0.12);
+  place-items: center;
+}
+
+.why-choose__item strong {
+  overflow: hidden;
+  width: 100%;
+  color: #172554;
+  font-size: 8px;
   font-weight: 800;
-  line-height: 20px;
+  line-height: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.profit {
-  color: #1677ff;
+
+.why-choose__item > span:last-child {
+  overflow: hidden;
+  width: 100%;
+  margin-top: 2px;
+  color: #71809b;
+  font-size: 6px;
+  line-height: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
