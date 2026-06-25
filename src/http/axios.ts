@@ -7,7 +7,11 @@ import { useUserStore } from "@/pinia/stores/user"
 /** 退出登录并强制刷新页面（会重定向到登录页） */
 function logout() {
   useUserStore().resetToken()
-  location.reload()
+  if (location.pathname !== "/login" && location.hash !== "#/login") {
+    const publicPath = import.meta.env.VITE_PUBLIC_PATH || "/"
+    const loginPath = import.meta.env.VITE_ROUTER_HISTORY === "hash" ? `${publicPath}#/login` : `${publicPath}login`
+    location.replace(loginPath)
+  }
 }
 
 /** 创建请求实例 */

@@ -238,15 +238,6 @@ onMounted(() => {
 
 <template>
   <div class="support-page">
-    <van-nav-bar
-      class="support-nav"
-      title="Procurement Support"
-      left-arrow
-      fixed
-      placeholder
-      @click-left="handleBack"
-    />
-
     <main class="support-content">
       <section class="support-banner">
         <img
@@ -328,20 +319,6 @@ onMounted(() => {
   padding-bottom: 28px;
   background: #f6f8fc;
   color: #071b3a;
-}
-
-.support-nav {
-  --van-nav-bar-height: 56px;
-  --van-nav-bar-background: #ffffff;
-  --van-nav-bar-title-text-color: #071b3a;
-  --van-nav-bar-title-font-size: 18px;
-  --van-nav-bar-icon-color: #071b3a;
-  --van-nav-bar-arrow-size: 21px;
-  box-shadow: 0 1px 8px rgba(7, 27, 58, 0.06);
-}
-
-.support-nav :deep(.van-nav-bar__title) {
-  font-weight: 700;
 }
 
 .support-content {

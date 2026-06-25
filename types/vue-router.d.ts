@@ -36,6 +36,8 @@ declare module "vue-router" {
          * @default false
          */
         showLeftArrow?: boolean
+        showRightShare?: boolean
+        showRightCustom?: boolean
       }
       tabbar?: {
         /**

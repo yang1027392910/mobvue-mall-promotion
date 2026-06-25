@@ -291,21 +291,6 @@ onMounted(() => {
 
 <template>
   <div class="calculator-page">
-    <van-nav-bar
-      class="calculator-nav"
-      title="Profit Calculator"
-      left-arrow
-      fixed
-      placeholder
-      @click-left="handleBack"
-    >
-      <template #right>
-        <button class="history-button" type="button" aria-label="Contact customer service" @click="handleCustomerService">
-          <Icon icon="mdi:customer-service" />
-        </button>
-      </template>
-    </van-nav-bar>
-
     <main class="calculator-content">
       <ModeTabs v-if="!isProfileWeightOnly" v-model="activeTab" :tabs="tabs" />
       <InputInformationCard
@@ -350,20 +335,6 @@ onMounted(() => {
   margin: 0 auto;
   background: #ffffff;
   color: #111827;
-}
-
-.calculator-nav {
-  --van-nav-bar-height: 56px;
-  --van-nav-bar-background: #ffffff;
-  --van-nav-bar-title-text-color: #111827;
-  --van-nav-bar-title-font-size: 17px;
-  --van-nav-bar-icon-color: #111827;
-  --van-nav-bar-arrow-size: 21px;
-  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.06);
-}
-
-.calculator-nav :deep(.van-nav-bar__title) {
-  font-weight: 700;
 }
 
 .history-button {

@@ -42,6 +42,7 @@ const loginRedirect = computed(() => {
   const redirect = String(route.query.redirect || "")
   return redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/"
 })
+const inviteCode = computed(() => String(route.query.invite || "").trim())
 
 interface LoginErrorResponse {
   error?: unknown
@@ -141,7 +142,8 @@ function onSubmit() {
   })
   emailCodeLogin({
     email: loginFormData.email,
-    code: loginFormData.code
+    code: loginFormData.code,
+    ...(inviteCode.value ? { inviteCode: inviteCode.value } : {})
   }).then(({ data }) => {
     loadingToast.close()
     userStore.setToken(data.token, data.user)

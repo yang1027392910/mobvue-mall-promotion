@@ -8,6 +8,7 @@ export interface LoginRequestData {
 export interface EmailCodeLoginRequestData {
   email: string
   code: string
+  inviteCode?: string
 }
 
 export type SendEmailCodeResponseData = ApiResponseData<null>

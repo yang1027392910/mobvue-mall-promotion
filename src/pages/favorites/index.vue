@@ -103,15 +103,6 @@ watch(loggedIn, (value) => {
 
 <template>
   <div class="favorites-page">
-    <header class="favorites-topbar">
-      <button class="back-home-button" type="button" aria-label="Back to home" @click="handleBackHome">
-        <Icon icon="mingcute:left-line" />
-      </button>
-      <div class="favorites-topbar-title">
-        Favorites
-      </div>
-    </header>
-
     <div v-if="!loggedIn" class="guest-guide">
       <van-icon class="guest-icon" name="star-o" />
       <div class="guest-title">

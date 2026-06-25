@@ -17,7 +17,7 @@ const showTabbar = computed(() => route.meta.layout?.tabbar?.showTabbar)
 <template>
   <div un-h-full un-flex un-flex-col>
     <NavBar v-if="showNavBar" />
-    <div un-flex-1 un-overflow-y-auto>
+    <div un-flex-1 un-overflow-y-auto un-overflow-x-hidden>
       <!-- key 采用 route.path 和 route.fullPath 有着不同的效果，大多数时候 path 更通用 -->
       <router-view v-slot="{ Component }">
         <keep-alive :include="keepAliveStore.cachedRoutes">

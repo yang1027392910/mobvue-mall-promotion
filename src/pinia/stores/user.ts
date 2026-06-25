@@ -15,6 +15,7 @@ interface UserInfo {
   role?: string
   roles?: string[]
   verificationStatus?: number
+  verification_status?: number
 }
 
 function getStoredUserInfo(): UserInfo {
@@ -49,10 +50,14 @@ export const useUserStore = defineStore("user", () => {
   const setUserInfo = (user: UserInfo = {}, shouldStore = true) => {
     userInfo.value = { ...userInfo.value, ...user }
     const mergedUser = userInfo.value
+    const verificationStatus = mergedUser.verificationStatus ?? mergedUser.verification_status
     id.value = Number(mergedUser.id ?? mergedUser.userId ?? mergedUser.user_id ?? mergedUser.sub ?? 0)
     username.value = mergedUser.username || mergedUser.name || mergedUser.nickname || mergedUser.email || "h5"
     email.value = mergedUser.email || ""
     roles.value = mergedUser.roles?.length ? mergedUser.roles : (mergedUser.role ? [mergedUser.role] : ["h5"])
+    if (verificationStatus !== undefined) {
+      userInfo.value.verificationStatus = Number(verificationStatus)
+    }
     if (shouldStore) {
       setStoredUserInfo(userInfo.value)
     }
@@ -101,10 +106,8 @@ export const useUserStore = defineStore("user", () => {
   }
 
   // 重置 Token
-  const resetToken = () => {
-    removeToken()
+  const resetUserInfo = () => {
     removeStoredUserInfo()
-    token.value = ""
     id.value = 0
     roles.value = []
     username.value = ""
@@ -112,7 +115,13 @@ export const useUserStore = defineStore("user", () => {
     userInfo.value = {}
   }
 
-  return { token, id, roles, username, email, userInfo, setUserInfo, setToken, getInfo, changeRoles, resetToken }
+  const resetToken = () => {
+    removeToken()
+    token.value = ""
+    resetUserInfo()
+  }
+
+  return { token, id, roles, username, email, userInfo, setUserInfo, setToken, getInfo, changeRoles, resetUserInfo, resetToken }
 })
 
 /**

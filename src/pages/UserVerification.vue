@@ -279,15 +279,6 @@ onMounted(() => {
 
 <template>
   <div class="verification-page">
-    <van-nav-bar
-      title="Supplier Verification"
-      left-arrow
-      fixed
-      placeholder
-      class="verification-nav"
-      @click-left="handleBack"
-    />
-
     <!-- <header class="verification-hero">
       <div class="hero-icon">
         <van-icon name="shield-o" />
@@ -602,15 +593,6 @@ onMounted(() => {
   margin: 0 auto;
   color: #0f172a;
   background: #f5f7fb;
-}
-
-.verification-nav :deep(.van-nav-bar__title) {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.verification-nav :deep(.van-icon) {
-  color: #0f172a;
 }
 
 .verification-hero {

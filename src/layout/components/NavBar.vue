@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Icon } from "@iconify/vue"
+
 const route = useRoute()
 
 const router = useRouter()
@@ -6,12 +8,19 @@ const router = useRouter()
 const title = computed(() => route.meta.title)
 
 const showLeftArrow = computed(() => route.meta.layout?.navBar?.showLeftArrow)
-
+const showRightShare = computed(() => route.meta.layout?.navBar?.showRightShare)
+const showRightCustom = computed(() => route.meta.layout?.navBar?.showRightCustom)
 function onClickLeft() {
   if (window.history.state?.back)
     history.back()
   else
     router.replace("/")
+}
+function handleShare() {
+  router.push("/invite-friends")
+}
+function handleCustom() {
+  router.push("/procurement-support")
 }
 </script>
 
@@ -23,5 +32,28 @@ function onClickLeft() {
     placeholder
     safe-area-inset-top
     @click-left="onClickLeft"
-  />
+  >
+    <template #right>
+      <button v-if="showRightShare" class="share-icon" type="button" aria-label="Share supplier" @click="handleShare">
+        <Icon icon="solar:share-bold" />
+      </button>
+      <button v-if="showRightCustom" class="share-icon" type="button" aria-label="Share supplier" @click="handleCustom">
+        <Icon icon="mdi:customer-service" />
+      </button>
+    </template>
+  </van-nav-bar>
 </template>
+
+<style scoped>
+.share-icon {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: #07152f;
+  background: transparent;
+  font-size: 22px;
+}
+</style>

@@ -89,8 +89,8 @@ export const routes: RouteRecordRaw[] = [
       title: "Product List",
       layout: {
         navBar: {
-          showNavBar: false,
-          showLeftArrow: false
+          showNavBar: true,
+          showLeftArrow: true
         }
       }
     }
@@ -103,8 +103,8 @@ export const routes: RouteRecordRaw[] = [
       title: "Hot Products",
       layout: {
         navBar: {
-          showNavBar: false,
-          showLeftArrow: false
+          showNavBar: true,
+          showLeftArrow: true
         }
       }
     }
@@ -117,8 +117,9 @@ export const routes: RouteRecordRaw[] = [
       title: "Product Details",
       layout: {
         navBar: {
-          showNavBar: false,
-          showLeftArrow: false
+          showNavBar: true,
+          showLeftArrow: true,
+          showRightShare: true
         }
       }
     }
@@ -131,8 +132,38 @@ export const routes: RouteRecordRaw[] = [
       title: "Calculator",
       layout: {
         navBar: {
-          showNavBar: false,
-          showLeftArrow: false
+          showNavBar: true,
+          showLeftArrow: true,
+          showRightCustom: true
+        }
+      }
+    }
+  },
+  {
+    path: "/suppliers",
+    component: () => import("@/pages/suppliers/index.vue"),
+    name: "Suppliers",
+    meta: {
+      title: "Suppliers",
+      layout: {
+        navBar: {
+          showNavBar: true,
+          showLeftArrow: true
+        }
+      }
+    }
+  },
+  {
+    path: "/supplier-details/:id?",
+    component: () => import("@/pages/supplierDetails/index.vue"),
+    name: "SupplierDetails",
+    meta: {
+      title: "Supplier Details",
+      layout: {
+        navBar: {
+          showNavBar: true,
+          showLeftArrow: true,
+          showRightShare: true
         }
       }
     }
@@ -145,8 +176,8 @@ export const routes: RouteRecordRaw[] = [
       title: "Logistics Suppliers",
       layout: {
         navBar: {
-          showNavBar: false,
-          showLeftArrow: false
+          showNavBar: true,
+          showLeftArrow: true
         }
       }
     }
@@ -159,8 +190,8 @@ export const routes: RouteRecordRaw[] = [
       title: "Procurement Support",
       layout: {
         navBar: {
-          showNavBar: false,
-          showLeftArrow: false
+          showNavBar: true,
+          showLeftArrow: true
         }
       }
     }
@@ -173,8 +204,22 @@ export const routes: RouteRecordRaw[] = [
       title: "Supplier Verification",
       layout: {
         navBar: {
-          showNavBar: false,
-          showLeftArrow: false
+          showNavBar: true,
+          showLeftArrow: true
+        }
+      }
+    }
+  },
+  {
+    path: "/invite-friends",
+    component: () => import("@/pages/inviteFriends/index.vue"),
+    name: "InviteFriends",
+    meta: {
+      title: "Invite Friends",
+      layout: {
+        navBar: {
+          showNavBar: true,
+          showLeftArrow: true
         }
       }
     }
@@ -187,8 +232,8 @@ export const routes: RouteRecordRaw[] = [
       title: "Favorites",
       layout: {
         navBar: {
-          showNavBar: false,
-          showLeftArrow: false
+          showNavBar: true,
+          showLeftArrow: true
         },
         tabbar: {
           showTabbar: true,

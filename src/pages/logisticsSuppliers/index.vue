@@ -131,15 +131,6 @@ onMounted(() => {
 
 <template>
   <div class="logistics-page">
-    <van-nav-bar
-      class="logistics-nav"
-      title="Logistics Suppliers"
-      left-arrow
-      fixed
-      placeholder
-      @click-left="handleBack"
-    />
-
     <main class="logistics-content">
       <div class="filter-bar" aria-label="Shipping method filter">
         <button
@@ -223,20 +214,6 @@ onMounted(() => {
   margin: 0 auto;
   background: #f6f8fc;
   color: #071b3a;
-}
-
-.logistics-nav {
-  --van-nav-bar-height: 50px;
-  --van-nav-bar-background: #ffffff;
-  --van-nav-bar-title-text-color: #071b3a;
-  --van-nav-bar-title-font-size: 17px;
-  --van-nav-bar-icon-color: #071b3a;
-  --van-nav-bar-arrow-size: 21px;
-  box-shadow: 0 1px 0 rgba(7, 27, 58, 0.08);
-}
-
-.logistics-nav :deep(.van-nav-bar__title) {
-  font-weight: 700;
 }
 
 .logistics-content {

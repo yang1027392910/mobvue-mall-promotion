@@ -65,7 +65,7 @@ const homeNavigations = ref<HomeNavigationItem[]>([
     value: "500+",
     icon: "solar:verified-check-bold-duotone",
     jumpType: "path",
-    jumpValue: "/logistics-suppliers",
+    jumpValue: "/suppliers",
     color: "#246bfe"
   },
   {
@@ -388,14 +388,6 @@ onMounted(() => {
     </section>
 
     <section class="today-products">
-      <div class="section-heading">
-        <h2>Hot Products Today</h2>
-        <button type="button" @click="handleViewAll">
-          View All
-          <Icon icon="mingcute:right-line" />
-        </button>
-      </div>
-
       <van-loading v-if="loading" class="home-loading" color="#1677ff" />
       <van-empty v-else-if="errorText" image="error" :description="errorText">
         <van-button size="small" type="primary" @click="getHotProductList">

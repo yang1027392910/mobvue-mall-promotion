@@ -3,10 +3,12 @@ import type { RawProductItem } from "@@/apis/products/type"
 import { favoriteClickApi } from "@@/apis/favorite"
 import { getProductListApi } from "@@/apis/products"
 import { requireLogin } from "@@/utils/guest-access"
+import VerifiedAccessDialog from "@@/components/VerifiedAccessDialog.vue"
 import { Icon } from "@iconify/vue"
 import { showFailToast, showSuccessToast } from "vant"
 import { computed, nextTick, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useUserStore } from "@/pinia/stores/user"
 
 interface SupplierContact {
   name: string
@@ -41,6 +43,7 @@ interface ProductDetail {
 
 const route = useRoute()
 const router = useRouter()
+const userStore = useUserStore()
 
 const isFavorite = ref(false)
 const loading = ref(false)
@@ -49,8 +52,24 @@ const errorText = ref("")
 const product = ref<ProductDetail | null>(null)
 const activeImageIndex = ref(0)
 const supplierContactSection = ref<HTMLElement | null>(null)
+const showVerificationDialog = ref(false)
 
 const productId = computed(() => Number(route.query.id || 0))
+const verificationStatus = computed(() => Number(userStore.userInfo.verificationStatus ?? -1))
+const realNameVerified = computed(() => verificationStatus.value === 1)
+const showSupplierSecondaryAction = computed(() => !realNameVerified.value || !product.value?.canViewSupplierContact)
+const supplierActionIcon = computed(() => {
+  if (!realNameVerified.value) return "lock"
+  return "service-o"
+})
+const supplierActionColor = computed(() => {
+  if (!realNameVerified.value) return "#2563eb"
+  return "#d97706"
+})
+const supplierActionText = computed(() => {
+  if (!realNameVerified.value) return "Verify to Unlock"
+  return "Contact Us"
+})
 
 function toNumber(value: number | string | undefined, fallback = 0) {
   const numberValue = Number(value)
@@ -129,7 +148,7 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
     shippingCost: String(shippingFee),
     otherFees: String(otherFees),
     isFavorite: Boolean(item.isFavorite ?? item.favorite ?? false),
-    canViewSupplierContact: toBoolean(item.showSupplierContact ?? item.canViewSupplierContact),
+    canViewSupplierContact: item.canViewSupplierContact === true,
     supplierContact,
     params: [
       { icon: "orders-o", label: "Min Order", value: `${minimumOrderQuantity} pcs` },
@@ -203,8 +222,28 @@ function handleCalculateProfit() {
   })
 }
 
-function handleSupplierAction() {
+function promptUserVerification() {
+  showVerificationDialog.value = true
+}
+
+function handleVerificationConfirm() {
+  router.push("/user-verification")
+}
+
+async function ensureRealNameVerified() {
+  if (realNameVerified.value) return true
+
+  await userStore.getInfo()
+  return realNameVerified.value
+}
+
+async function handleSupplierAction() {
   if (!requireLogin(router) || !product.value) return
+
+  if (!(await ensureRealNameVerified())) {
+    await promptUserVerification()
+    return
+  }
 
   if (product.value.canViewSupplierContact) {
     if (!product.value.supplierContact) {
@@ -221,8 +260,7 @@ function handleSupplierAction() {
     return
   }
 
-  // TODO: Call the supplier access request API when the backend provides one.
-  showSuccessToast("Request submitted, please wait for review.")
+  handleContactUs()
 }
 
 function handleContactUs() {
@@ -266,24 +304,6 @@ onMounted(() => {
 
 <template>
   <div class="product-detail-page">
-    <van-nav-bar
-      title="Product Details"
-      left-arrow
-      fixed
-      placeholder
-      class="detail-nav"
-      @click-left="handleBack"
-    >
-      <template #right>
-        <button class="nav-icon-button" type="button" aria-label="Share">
-          <van-icon name="share-o" />
-        </button>
-        <button class="nav-icon-button" type="button" aria-label="Favorite" :disabled="favoriteLoading" @click="toggleFavorite">
-          <van-icon :name="isFavorite ? 'like' : 'heart-o'" />
-        </button>
-      </template>
-    </van-nav-bar>
-
     <main class="detail-content">
       <van-loading
         v-if="loading"
@@ -458,7 +478,11 @@ onMounted(() => {
       </template>
     </main>
 
-    <div v-if="product" class="bottom-bar">
+    <div
+      v-if="product"
+      class="bottom-bar"
+      :class="{ 'has-two-actions': !showSupplierSecondaryAction }"
+    >
       <van-button
         class="bottom-button favorite-action"
         plain
@@ -470,14 +494,18 @@ onMounted(() => {
         {{ isFavorite ? "Favorited" : "Add to Favorites" }}
       </van-button>
       <van-button
+        v-if="showSupplierSecondaryAction"
         class="bottom-button supplier-secondary-action"
-        :class="{ 'no-access': !product.canViewSupplierContact }"
+        :class="{
+          'is-locked': !realNameVerified,
+          'no-access': realNameVerified && !product.canViewSupplierContact,
+        }"
         plain
-        :icon="product.canViewSupplierContact ? 'phone-o' : 'service-o'"
-        :color="product.canViewSupplierContact ? '#2e9d5c' : '#d97706'"
-        @click="product.canViewSupplierContact ? handleSupplierAction() : handleContactUs()"
+        :icon="supplierActionIcon"
+        :color="supplierActionColor"
+        @click="handleSupplierAction"
       >
-        {{ product.canViewSupplierContact ? "Supplier Info" : "Contact Us" }}
+        {{ supplierActionText }}
       </van-button>
       <van-button
         class="bottom-button supplier-action"
@@ -488,6 +516,12 @@ onMounted(() => {
         Calculate Profit
       </van-button>
     </div>
+
+    <VerifiedAccessDialog
+      v-model:show="showVerificationDialog"
+      :status="verificationStatus"
+      @confirm="handleVerificationConfirm"
+    />
   </div>
 </template>
 
@@ -498,11 +532,6 @@ onMounted(() => {
   margin: 0 auto;
   background: #ffffff;
   color: #111827;
-}
-
-.detail-nav :deep(.van-nav-bar__title) {
-  color: #111827;
-  font-weight: 700;
 }
 
 .detail-nav :deep(.van-icon) {
@@ -783,6 +812,10 @@ onMounted(() => {
   box-shadow: 0 -8px 22px rgba(15, 23, 42, 0.08);
 }
 
+.bottom-bar.has-two-actions {
+  grid-template-columns: 1fr 1fr;
+}
+
 .bottom-button {
   height: 44px;
   border-radius: 10px;
@@ -800,6 +833,10 @@ onMounted(() => {
 
 .supplier-secondary-action {
   background: #f0faf4;
+}
+
+.supplier-secondary-action.is-locked {
+  background: #eff6ff;
 }
 
 .supplier-secondary-action.no-access {

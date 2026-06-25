@@ -112,14 +112,6 @@ watch(activeTab, getHotProductList, { immediate: true })
 
 <template>
   <div class="hot-products-page">
-    <van-nav-bar
-      title="Hot Products"
-      left-arrow
-      fixed
-      placeholder
-      @click-left="router.back()"
-    />
-
     <div class="hot-tabs" role="tablist" aria-label="Product ranking filters">
       <button
         v-for="tab in tabs"
@@ -184,18 +176,9 @@ watch(activeTab, getHotProductList, { immediate: true })
   background: #f7faff;
 }
 
-.hot-products-page :deep(.van-nav-bar__title) {
-  color: #172554;
-  font-weight: 800;
-}
-
-.hot-products-page :deep(.van-nav-bar .van-icon) {
-  color: #172554;
-}
-
 .hot-tabs {
   position: sticky;
-  top: 46px;
+  top: 0px;
   z-index: 10;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -135,24 +135,6 @@ watch(categoryId, () => {
 
 <template>
   <div class="product-list-page">
-    <van-nav-bar
-      class="product-nav"
-      :title="categoryName"
-      left-arrow
-      fixed
-      placeholder
-      @click-left="handleBack"
-    >
-      <template #right>
-        <button class="nav-icon-button" type="button" aria-label="Search" @click="handleSearch">
-          <van-icon name="search" />
-        </button>
-        <button class="nav-icon-button" type="button" aria-label="Filter" @click="handleFilter">
-          <van-icon name="filter-o" />
-        </button>
-      </template>
-    </van-nav-bar>
-
     <div class="product-list-content">
       <van-loading
         v-if="loading"
@@ -256,16 +238,6 @@ watch(categoryId, () => {
   background: #ffffff;
 }
 
-.product-nav :deep(.van-nav-bar__title) {
-  max-width: 220px;
-  color: #111827;
-  font-weight: 700;
-}
-
-.product-nav :deep(.van-icon) {
-  color: #111827;
-}
-
 .nav-icon-button {
   width: 30px;
   height: 30px;
@@ -279,7 +251,7 @@ watch(categoryId, () => {
 }
 
 .product-list-content {
-  padding: 16px 12px;
+  padding: 0 12px;
 }
 
 .product-loading {
@@ -290,7 +262,7 @@ watch(categoryId, () => {
 
 .filter-tabs {
   position: sticky;
-  top: 46px;
+  top: 5px;
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
