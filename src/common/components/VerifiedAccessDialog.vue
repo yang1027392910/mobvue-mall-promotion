@@ -7,6 +7,7 @@ import giftTopImage from "@/assets/modal/gift.png"
 const props = defineProps<{
   show: boolean
   status?: number
+  showWelcomeTitle?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -34,12 +35,6 @@ const benefits = [
     className: "phone",
     title: "View Supplier Contacts",
     description: "Get phone, WhatsApp & more"
-  },
-  {
-    icon: "solar:tag-price-bold-duotone",
-    className: "price",
-    title: "Exclusive Pricing",
-    description: "Access better prices & offers"
   },
   {
     icon: "solar:box-bold-duotone",
@@ -80,7 +75,9 @@ function confirm() {
           <div class="verified-gift-top" aria-hidden="true">
             <img :src="giftTopImage" alt="">
           </div>
-
+          <div v-if="showWelcomeTitle" class="title">
+            Welcome to YiwuHub!
+          </div>
           <div class="benefit-panel">
             <article
               v-for="item in benefits"
@@ -106,7 +103,7 @@ function confirm() {
             {{ primaryText }}
           </button>
           <button class="verify-secondary" type="button" @click="close">
-            Not Now
+            Later
           </button>
 
           <div class="secure-note">
@@ -160,7 +157,7 @@ function confirm() {
   max-height: calc(100vh - 32px);
   overflow: visible;
   border-radius: 18px;
-  padding: 126px 10px 18px;
+  padding: 126px 15px 18px;
   color: #0b1735;
   background:
     radial-gradient(circle at 22% 10%, rgba(115, 178, 255, 0.26), transparent 25%),
@@ -168,7 +165,13 @@ function confirm() {
     linear-gradient(180deg, #f4f9ff 0%, #ffffff 42%, #ffffff 100%);
   box-shadow: 0 26px 60px rgba(0, 0, 0, 0.34);
 }
-
+.verified-access-card .title {
+  font-size: 16px;
+  line-height: 20px;
+  text-align: center;
+  margin: 10px 0;
+  font-weight: 600;
+}
 .verified-close {
   position: absolute;
   top: 12px;
@@ -189,8 +192,7 @@ function confirm() {
   position: absolute;
   left: 0;
   right: 0;
-  top: -72px;
-  margin: 0 -30px;
+  top: -62px;
   overflow: hidden;
   border-radius: 18px 18px 0 0;
 }
@@ -429,18 +431,19 @@ function confirm() {
 }
 
 .benefit-copy em {
-  border-radius: 6px;
-  padding: 2px 7px;
-  color: #ff3f5d;
-  background: #ffe4eb;
-  font-size: 10px;
+  border-radius: 10px;
+  padding: 1px 6px;
+  color: #fff;
+  background: #1ac453b6;
+  font-size: 9px;
+  line-height: 10px;
   font-style: normal;
   font-weight: 500;
 }
 
 .benefit-copy small {
   display: block;
-  margin-top: 4px;
+  margin-top: 2px;
   color: #74819a;
   font-size: 10px;
   font-weight: 500;
@@ -498,9 +501,9 @@ function confirm() {
 .verify-primary,
 .verify-secondary {
   width: 100%;
-  height: 38px;
+  height: 35px;
   border-radius: 10px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
 }
 

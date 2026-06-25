@@ -181,9 +181,9 @@ onMounted(() => {
   box-sizing: border-box;
 }
 
-/* .supplier-content {
-  padding: 45px 10px 0;
-} */
+.supplier-content {
+  padding: 0 10px 0;
+}
 
 .supplier-hero {
   position: relative;

@@ -16,6 +16,8 @@ interface UserInfo {
   roles?: string[]
   verificationStatus?: number
   verification_status?: number
+  isNewUser?: boolean | number | string
+  is_new_user?: boolean | number | string
 }
 
 function getStoredUserInfo(): UserInfo {

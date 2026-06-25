@@ -17,6 +17,8 @@ export type CaptchaResponseData = ApiResponseData<string>
 
 export type LoginResponseData = ApiResponseData<{
   token: string
+  isNewUser?: boolean | number | string
+  is_new_user?: boolean | number | string
   user?: {
     id?: number
     userId?: number
@@ -29,5 +31,8 @@ export type LoginResponseData = ApiResponseData<{
     role?: string
     roles?: string[]
     verificationStatus?: number
+    verification_status?: number
+    isNewUser?: boolean | number | string
+    is_new_user?: boolean | number | string
   }
 }>
