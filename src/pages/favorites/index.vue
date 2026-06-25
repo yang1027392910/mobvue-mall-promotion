@@ -158,7 +158,7 @@ watch(loggedIn, (value) => {
 <style scoped>
 .favorites-page {
   min-height: calc(100vh - 56px);
-  padding: 52px 14px 88px;
+  padding: 0 14px 88px;
   background: #f7f9fc;
 }
 
