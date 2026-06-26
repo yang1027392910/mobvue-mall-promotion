@@ -101,8 +101,8 @@ const banners = ref<BannerItem[]>([
     id: "local-banner",
     title: "YiwuHub banner",
     image: homeBanner,
-    jumpType: "none",
-    jumpValue: ""
+    jumpType: "link",
+    jumpValue: "/suppliers"
   }
 ])
 
@@ -397,6 +397,16 @@ onMounted(() => {
       <van-empty v-else-if="products.length === 0" description="No products found" />
 
       <div v-else class="featured-products">
+        <div class="featured-products__heading">
+          <div>
+            <!-- <span class="featured-products__eyebrow">Trending now</span> -->
+            <h2>Trending Products</h2>
+          </div>
+          <a class="featured-products__view-all" @click="handleViewAll">
+            View all
+            <Icon icon="weui:arrow-filled" />
+          </a>
+        </div>
         <div class="product-track">
           <article
             v-for="(item, index) in products.slice(0, 3)"
@@ -724,6 +734,53 @@ onMounted(() => {
 
 .featured-products {
   width: 100%;
+}
+
+.featured-products__heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 2px 10px;
+}
+
+.featured-products__eyebrow {
+  display: block;
+  margin-bottom: 2px;
+  color: #f59e0b;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 13px;
+  text-transform: uppercase;
+}
+
+.featured-products__heading h2 {
+  margin: 0;
+  color: #102044;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 30px;
+}
+
+.featured-products__view-all {
+  display: inline-flex;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  color: #1677ff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  border: none;
+}
+
+.featured-products__view-all svg {
+  width: 14px;
+  height: 14px;
+}
+
+.featured-products__view-all:active {
+  transform: scale(0.96);
 }
 
 .product-track {

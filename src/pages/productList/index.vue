@@ -4,6 +4,7 @@ import { getProductListApi } from "@@/apis/products"
 import { requireLogin } from "@@/utils/guest-access"
 import { computed, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import ProductCard from "@/components/ProductCard/index.vue"
 
 type FilterTab = "all" | "best" | "newest" | "price"
 
@@ -22,9 +23,7 @@ const products = ref<ProductItem[]>([])
 
 const tabs: Array<{ label: string, value: FilterTab }> = [
   { label: "All", value: "all" },
-  { label: "Best Sellers", value: "best" },
-  { label: "Newest", value: "newest" },
-  { label: "Price", value: "price" }
+  { label: "Best Sellers", value: "best" }
 ]
 
 const sortedProducts = computed(() => {
@@ -64,12 +63,17 @@ function getProductDataList(data: RawProductItem[] | { list?: RawProductItem[] }
 }
 
 function normalizeProduct(item: RawProductItem): ProductItem {
+  const chinaCost = toNumber(item.chinaCost ?? item.chinaPrice)
+  const phPrice = toNumber(item.phPrice ?? item.price)
+
   return {
     id: toNumber(item.id ?? item.productId),
     categoryId: toNumber(item.categoryId),
     name: String(item.name ?? item.productName ?? item.title ?? ""),
     image: getProductImage(String(item.image ?? item.imageUrl ?? item.cover ?? "")),
-    phPrice: toNumber(item.phPrice ?? item.price),
+    chinaCost,
+    phPrice,
+    profit: item.profit === undefined ? phPrice - chinaCost : toNumber(item.profit),
     isFavorite: Boolean(item.isFavorite ?? item.favorite ?? false),
     sales: toNumber(item.sales ?? item.salesVolume),
     createdAt: String(item.createdAt ?? item.createTime ?? "")
@@ -175,36 +179,24 @@ watch(categoryId, () => {
         </div>
 
         <div class="product-grid">
-          <div
+          <ProductCard
             v-for="item in sortedProducts"
             :key="item.id"
-            class="product-card"
+            layout="grid"
+            :show-favorite="false"
+            :product="{
+              id: item.id,
+              title: item.name,
+              image: item.image,
+              chinaCost: item.chinaCost,
+              price: item.phPrice,
+              profit: item.profit,
+              currency: '\u20B1',
+              isFavorite: item.isFavorite,
+            }"
             @click="handleProductClick(item)"
-          >
-            <div class="product-image-wrap">
-              <img v-if="item.image" class="product-image" :src="item.image" :alt="item.name">
-              <div v-else class="product-image-placeholder" />
-            </div>
-
-            <div class="product-info">
-              <div class="product-name">
-                {{ item.name }}
-              </div>
-              <div class="product-bottom">
-                <div class="product-price">
-                  ₱{{ item.phPrice.toFixed(2) }}
-                </div>
-                <button
-                  class="favorite-button"
-                  type="button"
-                  :aria-label="item.isFavorite ? 'Remove favorite' : 'Add favorite'"
-                  @click.stop="toggleFavorite(item)"
-                >
-                  <van-icon :name="item.isFavorite ? 'like' : 'heart-o'" />
-                </button>
-              </div>
-            </div>
-          </div>
+            @favorite="toggleFavorite(item)"
+          />
         </div>
 
         <van-empty v-if="sortedProducts.length === 0" description="No products found" />
@@ -323,75 +315,6 @@ watch(categoryId, () => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
-}
-
-.product-card {
-  overflow: hidden;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 8px 22px rgba(17, 24, 39, 0.08);
-}
-
-.product-image-wrap {
-  aspect-ratio: 1 / 1;
-  background: #f3f4f6;
-}
-
-.product-image,
-.product-image-placeholder {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.product-image-placeholder {
-  background: #f3f4f6;
-}
-
-.product-info {
-  padding: 10px;
-}
-
-.product-name {
-  min-height: 40px;
-  color: #111827;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.product-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 32px;
-  margin-top: 8px;
-  gap: 8px;
-}
-
-.product-price {
-  color: #ff3b30;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.favorite-button {
-  flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  border: 0;
-  border-radius: 50%;
-  background: #f9fafb;
-  color: #ff3b30;
-  font-size: 18px;
-  display: inline-grid;
-  place-items: center;
-  padding: 0;
 }
 
 .filter-panel {

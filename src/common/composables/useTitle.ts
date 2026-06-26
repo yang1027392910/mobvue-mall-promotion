@@ -5,8 +5,8 @@ const VITE_APP_TITLE = import.meta.env.VITE_APP_TITLE ?? "MobVue"
 const dynamicTitle = ref<string>("")
 
 /** 设置标题 */
-function setTitle(title?: string) {
-  dynamicTitle.value = title ? `${VITE_APP_TITLE} | ${title}` : VITE_APP_TITLE
+function setTitle(_title?: string) {
+  dynamicTitle.value = VITE_APP_TITLE
 }
 
 // 监听标题变化

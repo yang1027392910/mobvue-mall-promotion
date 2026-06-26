@@ -6,6 +6,7 @@ export interface ProductCardData {
   price?: number
   currency?: string
   chinaCost?: number
+  profit?: number
   profitMargin?: number
   isFavorite?: boolean
 }
@@ -15,12 +16,14 @@ interface Props {
   showPrice?: boolean
   showFavorite?: boolean
   compact?: boolean
+  layout?: "row" | "grid"
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showPrice: true,
   showFavorite: true,
-  compact: false
+  compact: false,
+  layout: "row"
 })
 
 const emit = defineEmits<{
@@ -35,12 +38,19 @@ function handleCardClick() {
 function handleFavoriteClick() {
   emit("favorite", props.product)
 }
+
+function formatMoney(value?: number) {
+  return value === undefined ? "--" : value.toFixed(2)
+}
 </script>
 
 <template>
   <div
     class="product-card"
-    :class="{ 'product-card--compact': compact }"
+    :class="[
+      `product-card--${layout}`,
+      { 'product-card--compact': compact },
+    ]"
     role="button"
     tabindex="0"
     @click="handleCardClick"
@@ -60,13 +70,27 @@ function handleFavoriteClick() {
       <div class="product-card__title">
         {{ product.title }}
       </div>
-
       <div class="product-card__footer">
-        <div v-if="showPrice" class="product-card__price">
-          <span class="product-card__currency">{{ product.currency || "$" }}</span>
-          <span>{{ product.price?.toFixed(2) || "--" }}</span>
+        <div class="product-card__metrics">
+          <div v-if="product.chinaCost !== undefined" class="product-card__metric">
+            <span>China Cost</span>
+            <strong>
+              <span class="product-card__currency">{{ product.currency || "$" }}</span>{{ formatMoney(product.chinaCost) }}
+            </strong>
+          </div>
+          <div v-if="showPrice" class="product-card__metric product-card__metric--price">
+            <span>PH Price</span>
+            <strong>
+              <span class="product-card__currency">{{ product.currency || "$" }}</span>{{ formatMoney(product.price) }}
+            </strong>
+          </div>
+          <div v-if="product.profit !== undefined" class="product-card__metric product-card__metric--profit">
+            <span>Profit / Item</span>
+            <strong>
+              <span class="product-card__currency">{{ product.currency || "$" }}</span>{{ formatMoney(product.profit) }}
+            </strong>
+          </div>
         </div>
-        <div v-else />
 
         <button
           v-if="showFavorite"
@@ -149,12 +173,34 @@ function handleFavoriteClick() {
   gap: 8px;
 }
 
-.product-card__price {
+.product-card__metrics {
   min-width: 0;
-  color: #1677ff;
-  font-size: 16px;
+  flex: 1;
+}
+
+.product-card__metric {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 19px;
+  color: #315074;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.product-card__metric span {
+  white-space: nowrap;
+}
+
+.product-card__metric strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #071b44;
+  font-size: 13px;
   font-weight: 800;
-  line-height: 22px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .product-card__currency {
@@ -192,7 +238,44 @@ function handleFavoriteClick() {
   line-height: 18px;
 }
 
-.product-card--compact .product-card__price {
-  font-size: 15px;
+.product-card--grid {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(17, 24, 39, 0.08);
+}
+
+.product-card--grid .product-card__image-wrap {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px 12px 0 0;
+}
+
+.product-card--grid .product-card__image,
+.product-card--grid .product-card__placeholder {
+  border-radius: 12px 12px 0 0;
+}
+
+.product-card--grid .product-card__body {
+  padding: 10px;
+}
+
+.product-card--grid .product-card__title {
+  min-height: 40px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.product-card--grid .product-card__footer {
+  min-height: 32px;
+  margin-top: 7px;
+}
+
+.product-card--grid .product-card__favorite {
+  background: #f9fafb;
+  color: #ff3b30;
 }
 </style>

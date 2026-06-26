@@ -3,7 +3,9 @@ export interface ProductItem {
   categoryId: number
   name: string
   image: string
+  chinaCost?: number
   phPrice: number
+  profit?: number
   isFavorite: boolean
   sales: number
   createdAt: string
@@ -22,6 +24,7 @@ export interface RawProductItem {
   images?: string
   subtitle?: string
   description?: string
+  chinaCost?: number | string
   chinaPrice?: number | string
   shippingFee?: number | string
   otherFees?: number | string

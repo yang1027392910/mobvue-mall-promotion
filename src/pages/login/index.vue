@@ -231,10 +231,12 @@ function handleSendCode() {
   sendingCode.value = true
   const loadingToast = showLoadingToast({
     message: "Sending code...",
+    className: "email-code-loading-toast",
     forbidClick: true,
     duration: 0
   })
   sendEmailCode(loginFormData.email).then(() => {
+    loadingToast.close()
     showSuccessToast("Code sent")
     startCountdown()
   }).catch((error) => {
@@ -757,6 +759,17 @@ onBeforeUnmount(() => {
   font-weight: 700;
   background: linear-gradient(90deg, #2563eb 0%, #0a84ff 100%);
   box-shadow: 0 14px 26px rgba(37, 99, 235, 0.26);
+}
+
+:global(.email-code-loading-toast) {
+  width: auto;
+  min-width: 132px;
+  max-width: calc(100vw - 48px);
+  padding: 16px 18px;
+}
+
+:global(.email-code-loading-toast .van-toast__text) {
+  white-space: nowrap;
 }
 
 .benefits {

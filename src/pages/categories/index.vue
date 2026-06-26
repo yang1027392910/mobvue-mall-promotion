@@ -127,9 +127,6 @@ onMounted(() => {
           <div class="category-name">
             {{ item.name }}
           </div>
-          <div class="category-count">
-            0+ items
-          </div>
         </div>
         <span class="category-arrow">
           <van-icon name="arrow" />
