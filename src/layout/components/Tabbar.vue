@@ -62,8 +62,7 @@ function getTabbarTarget(path: string) {
   <van-tabbar
     class="app-tabbar"
     route
-    fixed
-    placeholder
+    :fixed="false"
     safe-area-inset-bottom
     active-color="#1677ff"
     inactive-color="#9aa3b8"
