@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { RawProductItem } from "@@/apis/products/type"
 import { favoriteClickApi } from "@@/apis/favorite"
-import { getProductListApi } from "@@/apis/products"
-import { requireLogin } from "@@/utils/guest-access"
+import { getProductDetailApi } from "@@/apis/products"
 import VerifiedAccessDialog from "@@/components/VerifiedAccessDialog.vue"
+import { requireLogin } from "@@/utils/guest-access"
 import { Icon } from "@iconify/vue"
 import { showFailToast, showSuccessToast } from "vant"
 import { computed, nextTick, ref } from "vue"
@@ -76,10 +76,6 @@ function toNumber(value: number | string | undefined, fallback = 0) {
   return Number.isFinite(numberValue) ? numberValue : fallback
 }
 
-function toBoolean(value: boolean | number | string | undefined) {
-  return value === true || value === 1 || value === "1" || value === "true"
-}
-
 function formatPeso(value: number | string | undefined) {
   return `₱${toNumber(value).toFixed(2)}`
 }
@@ -92,8 +88,12 @@ function getAssetUrl(url?: string) {
   return `${imageBaseUrl.replace(/\/$/, "")}/${url.replace(/^\//, "")}`
 }
 
-function parseImages(images?: string) {
+function parseImages(images?: string | string[]) {
   if (!images) return []
+
+  if (Array.isArray(images)) {
+    return images.filter(item => typeof item === "string")
+  }
 
   try {
     const parsed = JSON.parse(images)
@@ -103,14 +103,10 @@ function parseImages(images?: string) {
   }
 }
 
-function getProductDataList(data: RawProductItem[] | { list?: RawProductItem[] }) {
-  if (Array.isArray(data)) return data
-  return Array.isArray(data.list) ? data.list : []
-}
-
 function normalizeProduct(item: RawProductItem): ProductDetail {
   const images = parseImages(item.images)
-  const allImages = [item.cover, ...images].filter(Boolean) as string[]
+  const cover = item.cover ?? item.image ?? item.imageUrl
+  const allImages = [cover, ...images].filter(Boolean) as string[]
   const imageUrls = allImages.map(getAssetUrl).filter(Boolean)
   const chinaPrice = toNumber(item.chinaPrice)
   const phPrice = toNumber(item.phPrice ?? item.price)
@@ -165,15 +161,12 @@ async function getProductDetail() {
   errorText.value = ""
 
   try {
-    const { data } = await getProductListApi({})
-    const products = getProductDataList(data)
-    const matchedProduct = products.find(item => toNumber(item.id ?? item.productId) === productId.value)
-
-    if (!matchedProduct) {
-      throw new Error("Product not found")
+    if (!productId.value) {
+      throw new Error("Invalid product id")
     }
 
-    const normalizedProduct = normalizeProduct(matchedProduct)
+    const { data } = await getProductDetailApi(productId.value)
+    const normalizedProduct = normalizeProduct(data)
     product.value = normalizedProduct
     activeImageIndex.value = 0
     isFavorite.value = normalizedProduct.isFavorite
@@ -182,10 +175,6 @@ async function getProductDetail() {
   } finally {
     loading.value = false
   }
-}
-
-function handleBack() {
-  router.back()
 }
 
 async function toggleFavorite() {

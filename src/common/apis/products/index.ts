@@ -9,3 +9,11 @@ export function getProductListApi(params: Products.ProductListRequestData) {
     params
   })
 }
+
+/** 获取 H5 商品详情 */
+export function getProductDetailApi(id: number | string) {
+  return request<Products.ProductDetailResponseData>({
+    url: `h5/product/detail/${id}`,
+    method: "get"
+  })
+}

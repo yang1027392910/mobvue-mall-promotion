@@ -21,7 +21,7 @@ export interface RawProductItem {
   image?: string
   imageUrl?: string
   cover?: string
-  images?: string
+  images?: string | string[]
   subtitle?: string
   description?: string
   chinaCost?: number | string
@@ -62,3 +62,5 @@ export interface ProductListRequestData {
 }
 
 export type ProductListResponseData = ApiResponseData<RawProductItem[] | ProductListPageData>
+
+export type ProductDetailResponseData = ApiResponseData<RawProductItem>

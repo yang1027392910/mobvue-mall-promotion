@@ -74,7 +74,7 @@ function normalizeHotProduct(item: RawHotProductItem, index: number): ProductIte
     : toNumber(item.grossProfit ?? item.estimatedProfit, price - cost)
 
   return {
-    id: toNumber(item.productId ?? item.id ?? item.spuId ?? item.hotProductId, index + 1),
+    id: toNumber(item.id, index + 1),
     name: String(item.name ?? item.productName ?? item.goodsName ?? item.title ?? "Unnamed Product"),
     image: getProductImage(String(item.image ?? item.imageUrl ?? item.productImage ?? item.mainImage ?? item.picUrl ?? item.cover ?? item.coverUrl ?? "")),
     score: toNumber(item.score ?? item.tiktokScore ?? item.tikTokScore ?? item.hotScore).toFixed(1),
