@@ -25,7 +25,7 @@ const quickEntries: QuickEntry[] = [
     description: "Find trending products",
     icon: "fire-o",
     color: "quick-blue",
-    path: "/"
+    path: "/hot-products"
   },
   {
     title: "Supplier",
@@ -72,7 +72,7 @@ const menuItems: MenuItem[] = [
 
 const router = useRouter()
 const userStore = useUserStore()
-const guestAccessiblePaths = ["/procurement-support", "/logistics-suppliers"]
+const guestAccessiblePaths = ["/hot-products", "/procurement-support", "/logistics-suppliers"]
 const loggedIn = computed(() => isLoggedIn())
 const userEmail = computed(() => userStore.email || (userStore.username.includes("@") ? userStore.username : ""))
 const displayEmail = computed(() => maskEmail(userEmail.value))

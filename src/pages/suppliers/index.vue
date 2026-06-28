@@ -58,7 +58,7 @@ function normalizeSupplier(item: RawSupplierItem): SupplierItem {
     name: String(item.name || "Unnamed Supplier"),
     location: item.city ? `${item.city}, China` : "China",
     products: String(mainProducts || "General Products"),
-    tag: item.moq ? `MOQ ${item.moq}` : "Verified",
+    tag: item.moq ? `minOrder ${item.moq}` : "Verified",
     image: getAssetUrl(item.logo),
     status: Number(item.status ?? 0),
     sort: Number(item.sort ?? 0)
@@ -80,10 +80,6 @@ async function getSupplierList() {
   } finally {
     loading.value = false
   }
-}
-
-function handleBack() {
-  router.back()
 }
 
 function handleSupplierClick(supplier: SupplierItem) {
@@ -151,7 +147,7 @@ onMounted(() => {
             <div class="supplier-tags">
               <span class="verified-tag">
                 <Icon icon="solar:shield-check-bold" />
-                Verified Supplier
+                Verified supplier
               </span>
               <span class="blue-tag">{{ supplier.tag }}</span>
             </div>
@@ -338,7 +334,7 @@ onMounted(() => {
   position: relative;
   display: grid;
   grid-template-columns: 86px minmax(0, 1fr) 18px;
-  gap: 14px;
+  gap: 0;
   align-items: center;
   border: 1px solid #e8eef8;
   border-radius: 9px;
@@ -378,6 +374,7 @@ onMounted(() => {
 
 .supplier-card__body {
   min-width: 0;
+  margin-left: 10px;
 }
 
 .supplier-card h2 {
@@ -436,24 +433,32 @@ onMounted(() => {
 
 .supplier-tags {
   display: flex;
+  min-width: 0;
   gap: 7px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: space-around;
   margin-top: 8px;
+  overflow: hidden;
 }
 
 .supplier-tags span {
+  min-width: 0;
   min-height: 20px;
   border-radius: 5px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  overflow: hidden;
   padding: 0 7px;
   font-size: 10px;
   font-weight: 900;
   line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .verified-tag {
+  flex: 0 0 auto;
   color: #06a75d;
   background: #eafbf1;
 }
@@ -464,6 +469,7 @@ onMounted(() => {
 }
 
 .blue-tag {
+  flex: 1 1 auto;
   color: #075eff;
   background: #edf4ff;
 }
@@ -471,6 +477,7 @@ onMounted(() => {
 .card-arrow {
   width: 18px;
   height: 18px;
+  margin-left: 5px;
   color: #60708f;
 }
 </style>

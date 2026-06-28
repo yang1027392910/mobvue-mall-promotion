@@ -227,6 +227,11 @@ function normalizeHomeNavigation(item: RawHomeNavigationItem, index: number): Ho
 function handleNavigationClick(item: HomeNavigationItem) {
   if (!item.jumpValue) return
 
+  if (item.jumpValue === "/hot-products") {
+    router.push("/hot-products")
+    return
+  }
+
   if (item.jumpValue.startsWith("/calculator")) {
     handleProfitCalculator(item.jumpValue)
     return

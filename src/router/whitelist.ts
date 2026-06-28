@@ -5,6 +5,7 @@ const whiteListByPath: string[] = [
   "/",
   "/home",
   "/categories",
+  "/hot-products",
   "/product-list",
   "/product/list",
   "/product-card",
@@ -13,6 +14,7 @@ const whiteListByPath: string[] = [
   "/favorites",
   "/profile",
   "/procurement-support",
+  "/suppliers",
   "/logistics-suppliers",
   "/login",
   "/register"
