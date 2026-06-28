@@ -32,7 +32,7 @@ const quickEntries: QuickEntry[] = [
     description: "Verified suppliers from China",
     icon: "friends-o",
     color: "quick-purple",
-    path: "/logistics-suppliers"
+    path: "/suppliers"
   },
   {
     title: "Profit Calculator",
@@ -57,22 +57,22 @@ const menuItems: MenuItem[] = [
     path: "/favorites"
   },
   {
+    title: "logistics Support",
+    description: "We're here to help you",
+    icon: "logistics",
+    path: "/logistics-suppliers"
+  },
+  {
     title: "Help Center",
     description: "FAQs and platform guides",
     icon: "question-o",
     path: "/procurement-support"
-  },
-  {
-    title: "logistics Support",
-    description: "We're here to help you",
-    icon: "service-o",
-    path: "/logistics-suppliers"
   }
 ]
 
 const router = useRouter()
 const userStore = useUserStore()
-const guestAccessiblePaths = ["/hot-products", "/procurement-support", "/logistics-suppliers"]
+const guestAccessiblePaths = ["/hot-products", "/procurement-support", "/suppliers", "/logistics-suppliers"]
 const loggedIn = computed(() => isLoggedIn())
 const userEmail = computed(() => userStore.email || (userStore.username.includes("@") ? userStore.username : ""))
 const displayEmail = computed(() => maskEmail(userEmail.value))
@@ -204,6 +204,7 @@ onMounted(() => {
 
       <section class="menu-card">
         <div
+          v-if="loggedIn"
           class="menu-item verification-menu-item"
           :class="[
             `is-${verificationMenu.className}`,
