@@ -61,30 +61,6 @@ onMounted(() => {
 
 <template>
   <div class="categories-page">
-    <header class="categories-topbar">
-      <button class="back-home-button" type="button" aria-label="Back to home" @click="handleBackHome">
-        <Icon icon="mingcute:left-line" />
-      </button>
-      <div class="categories-topbar-title">
-        Categories
-      </div>
-    </header>
-
-    <div class="categories-header">
-      <div class="categories-heading-copy">
-        <h1>Browse Categories</h1>
-        <p>Find products from trusted China suppliers</p>
-      </div>
-      <img class="categories-hero-image" :src="bcRightImage" alt="">
-    </div>
-
-    <div class="category-stat-card">
-      <span class="category-stat-icon">
-        <van-icon name="apps-o" />
-      </span>
-      <span>{{ categoryList.length }} Product Categories</span>
-    </div>
-
     <van-loading
       v-if="loading"
       class="categories-loading"

@@ -71,8 +71,8 @@ export const routes: RouteRecordRaw[] = [
       title: "Categories",
       layout: {
         navBar: {
-          showNavBar: false,
-          showLeftArrow: false
+          showNavBar: true,
+          showLeftArrow: true
         },
         tabbar: {
           showTabbar: true,
