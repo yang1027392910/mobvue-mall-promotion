@@ -423,7 +423,7 @@ onBeforeUnmount(() => {
 .login-shell {
   position: relative;
   width: 100%;
-  max-width: 375px;
+  max-width: 500px;
   min-height: 100vh;
   margin: 0 auto;
   padding: 0 0 16px;
@@ -434,7 +434,7 @@ onBeforeUnmount(() => {
   position: fixed;
   z-index: 100;
   top: 12px;
-  right: max(14px, calc((100vw - 375px) / 2 + 14px));
+  right: max(14px, calc((100vw - 500px) / 2 + 14px));
   display: inline-flex;
   align-items: center;
   border: 0;

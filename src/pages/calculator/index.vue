@@ -331,7 +331,7 @@ onMounted(() => {
 <style scoped>
 .calculator-page {
   min-height: 100vh;
-  max-width: 375px;
+  max-width: 500px;
   margin: 0 auto;
   background: #ffffff;
   color: #111827;

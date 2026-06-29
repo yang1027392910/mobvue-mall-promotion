@@ -387,7 +387,7 @@ onMounted(() => {
 <style scoped>
 .invite-page {
   width: 100%;
-  max-width: 375px;
+  max-width: 500px;
   min-height: 100vh;
   margin: 0 auto;
   padding-bottom: 50px;
@@ -1234,7 +1234,7 @@ onMounted(() => {
   bottom: 0;
   z-index: 20;
   width: 100%;
-  max-width: 375px;
+  max-width: 500px;
   height: 64px;
   transform: translateX(-50%);
   border-top: 1px solid #e5ebf5;

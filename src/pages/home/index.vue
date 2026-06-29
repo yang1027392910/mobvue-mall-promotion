@@ -492,14 +492,18 @@ onMounted(() => {
 
 .home-header {
   position: fixed;
-  inset: 0 0 auto;
+  top: 0;
+  left: 50%;
   z-index: 20;
+  width: 100%;
+  max-width: 500px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 50px;
   padding: 0 12px 0;
   background: #f7faff;
+  transform: translateX(-50%);
 }
 
 .home-logo {

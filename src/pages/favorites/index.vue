@@ -168,7 +168,7 @@ watch(loggedIn, (value) => {
   left: 50%;
   z-index: 20;
   width: 100%;
-  max-width: 430px;
+  max-width: 500px;
   height: 40px;
   display: grid;
   place-items: center;

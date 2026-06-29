@@ -314,7 +314,7 @@ onMounted(() => {
 <style scoped>
 .support-page {
   min-height: 100vh;
-  max-width: 375px;
+  max-width: 500px;
   margin: 0 auto;
   padding-bottom: 28px;
   background: #f6f8fc;

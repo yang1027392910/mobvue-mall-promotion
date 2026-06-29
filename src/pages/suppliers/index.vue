@@ -165,7 +165,7 @@ onMounted(() => {
 <style scoped>
 .suppliers-page {
   min-height: 100vh;
-  max-width: 375px;
+  max-width: 500px;
   margin: 0 auto;
   padding-bottom: 22px;
   color: #07152f;

@@ -517,7 +517,7 @@ onMounted(() => {
 <style scoped>
 .product-detail-page {
   min-height: 100vh;
-  max-width: 430px;
+  max-width: 500px;
   margin: 0 auto;
   background: #ffffff;
   color: #111827;
@@ -790,7 +790,7 @@ onMounted(() => {
   bottom: 0;
   z-index: 20;
   width: 100%;
-  max-width: 430px;
+  max-width: 500px;
   height: 68px;
   transform: translateX(-50%);
   display: grid;

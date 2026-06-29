@@ -210,7 +210,7 @@ onMounted(() => {
 <style scoped>
 .logistics-page {
   min-height: 100vh;
-  max-width: 375px;
+  max-width: 500px;
   margin: 0 auto;
   background: #f6f8fc;
   color: #071b3a;

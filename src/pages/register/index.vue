@@ -84,7 +84,7 @@ function goLogin() {
   margin-bottom: 28px;
 }
 .register-panel {
-  max-width: 390px;
+  max-width: 500px;
   margin: 0 auto;
 }
 .register-title {

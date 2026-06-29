@@ -26,6 +26,7 @@ function handleCustom() {
 
 <template>
   <van-nav-bar
+    class="app-navbar"
     :title="title"
     :left-arrow="showLeftArrow"
     fixed
@@ -55,5 +56,13 @@ function handleCustom() {
   color: #07152f;
   background: transparent;
   font-size: 22px;
+}
+
+@media (min-width: 768px) {
+  :global(.app-navbar.van-nav-bar--fixed) {
+    left: 50%;
+    width: 500px;
+    transform: translateX(-50%);
+  }
 }
 </style>

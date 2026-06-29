@@ -266,7 +266,7 @@ onMounted(() => {
 <style scoped>
 .profile-page {
   width: 100%;
-  max-width: 375px;
+  max-width: 500px;
   min-height: 100%;
   margin: 0 auto;
   padding-bottom: 96px;
@@ -690,4 +690,5 @@ onMounted(() => {
   /* font-size: 24px; */
   line-height: 1;
 }
+
 </style>

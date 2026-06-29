@@ -588,7 +588,7 @@ onMounted(() => {
 <style scoped>
 .verification-page {
   width: 100%;
-  max-width: 375px;
+  max-width: 500px;
   min-height: 100vh;
   margin: 0 auto;
   color: #0f172a;
