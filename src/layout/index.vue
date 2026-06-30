@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useKeepAliveStore } from "@/pinia/stores/keep-alive"
+import Footer from "./components/Footer.vue"
 import NavBar from "./components/NavBar.vue"
 import Tabbar from "./components/Tabbar.vue"
 
@@ -13,7 +14,7 @@ const showNavBar = computed(() => route.meta.layout?.navBar?.showNavBar)
 
 const showTabbar = computed(() => route.meta.layout?.tabbar?.showTabbar)
 
-// const showFooter = computed(() => route.meta.layout?.footer)
+const showFooter = computed(() => route.meta.layout?.footer === true)
 
 function isDesktopViewport() {
   return window.matchMedia("(min-width: 768px)").matches
@@ -61,7 +62,7 @@ onBeforeUnmount(() => {
           <component :is="Component" :key="route.path" />
         </keep-alive>
       </router-view>
-      <!-- <Footer v-if="showFooter" /> -->
+      <Footer v-if="showFooter" />
     </div>
     <Tabbar v-if="showTabbar" />
   </div>

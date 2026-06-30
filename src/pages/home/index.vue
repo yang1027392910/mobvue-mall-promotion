@@ -484,8 +484,8 @@ onMounted(() => {
 
 <style scoped>
 .page-home {
-  min-height: 100vh;
-  padding: 50px 12px 88px;
+  /* min-height: 100vh; */
+  padding: 50px 12px 10px;
   overflow-x: hidden;
   background: #f7faff;
 }

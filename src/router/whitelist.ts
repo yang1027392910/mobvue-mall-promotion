@@ -14,6 +14,7 @@ const whiteListByPath: string[] = [
   "/favorites",
   "/profile",
   "/procurement-support",
+  "/about-policies",
   "/suppliers",
   "/logistics-suppliers",
   "/login",

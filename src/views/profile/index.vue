@@ -67,12 +67,18 @@ const menuItems: MenuItem[] = [
     description: "FAQs and platform guides",
     icon: "question-o",
     path: "/procurement-support"
+  },
+  {
+    title: "About Us",
+    description: "Learn about YiwuHub and policies",
+    icon: "info-o",
+    path: "/about-policies#about-us"
   }
 ]
 
 const router = useRouter()
 const userStore = useUserStore()
-const guestAccessiblePaths = ["/hot-products", "/procurement-support", "/suppliers", "/logistics-suppliers"]
+const guestAccessiblePaths = ["/hot-products", "/procurement-support", "/about-policies", "/suppliers", "/logistics-suppliers"]
 const loggedIn = computed(() => isLoggedIn())
 const userEmail = computed(() => userStore.email || (userStore.username.includes("@") ? userStore.username : ""))
 const displayEmail = computed(() => maskEmail(userEmail.value))
@@ -133,7 +139,7 @@ function handleLogout() {
 function handleNavigate(path?: string) {
   if (!path) return
 
-  const targetPath = path.split("?")[0]
+  const targetPath = path.split(/[?#]/)[0]
   if (!loggedIn.value && !guestAccessiblePaths.includes(targetPath)) {
     handleLogin()
     return

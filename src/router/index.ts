@@ -59,7 +59,8 @@ export const routes: RouteRecordRaw[] = [
         tabbar: {
           showTabbar: true,
           icon: "home-o"
-        }
+        },
+        footer: true
       }
     }
   },
@@ -192,6 +193,23 @@ export const routes: RouteRecordRaw[] = [
         navBar: {
           showNavBar: true,
           showLeftArrow: true
+        }
+      }
+    }
+  },
+  {
+    path: "/about-policies",
+    component: () => import("@/pages/aboutPolicies/index.vue"),
+    name: "AboutPolicies",
+    meta: {
+      title: "About & Policies",
+      layout: {
+        navBar: {
+          showNavBar: true,
+          showLeftArrow: true
+        },
+        tabbar: {
+          showTabbar: false
         }
       }
     }
