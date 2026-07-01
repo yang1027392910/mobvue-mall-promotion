@@ -326,7 +326,7 @@ onMounted(() => {
               v-for="(image, index) in product.images"
               :key="`${image}-${index}`"
             >
-              <img class="product-image" :src="image" :alt="product.name">
+              <img class="product-image" :src="image" :alt="product.name" draggable="false">
             </van-swipe-item>
           </van-swipe>
           <div v-else class="product-image-placeholder" />
@@ -593,6 +593,8 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .product-image-placeholder {

@@ -7,7 +7,7 @@ import { getHomeNavigationListApi } from "@@/apis/homeNavigation"
 import { getHotProductListApi } from "@@/apis/hotProduct"
 import { isLoggedIn } from "@@/utils/guest-access"
 import { Icon } from "@iconify/vue"
-import { onMounted, ref } from "vue"
+import { onBeforeUnmount, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import homeBanner from "@/assets/home/banner-suppliers.png"
 import homeLogo from "@/assets/home/logo.png"
@@ -52,6 +52,10 @@ interface HomeNavigationItem {
 }
 
 type BannerJumpType = "product" | "category" | "link" | "none"
+type PointerPoint = {
+  x: number
+  y: number
+}
 
 const router = useRouter()
 const loading = ref(false)
@@ -105,6 +109,10 @@ const banners = ref<BannerItem[]>([
     jumpValue: "/suppliers"
   }
 ])
+const bannerDragThreshold = 8
+const bannerClickSuppressed = ref(false)
+let bannerPressStart: PointerPoint | null = null
+let bannerClickResetTimer: number | undefined
 
 function toNumber(value: number | string | undefined, fallback = 0) {
   const numberValue = Number(value)
@@ -245,7 +253,54 @@ function handleNavigationClick(item: HomeNavigationItem) {
   router.push(item.jumpValue)
 }
 
-function handleBannerClick(banner: BannerItem) {
+function getPointerPoint(event: MouseEvent | TouchEvent): PointerPoint | null {
+  if ("touches" in event) {
+    const touch = event.touches[0] || event.changedTouches[0]
+    return touch ? { x: touch.clientX, y: touch.clientY } : null
+  }
+
+  return { x: event.clientX, y: event.clientY }
+}
+
+function handleBannerPressStart(event: MouseEvent | TouchEvent) {
+  window.clearTimeout(bannerClickResetTimer)
+  bannerPressStart = getPointerPoint(event)
+  bannerClickSuppressed.value = false
+}
+
+function handleBannerPressMove(event: MouseEvent | TouchEvent) {
+  if (!bannerPressStart) return
+
+  const point = getPointerPoint(event)
+  if (!point) return
+
+  const movedX = Math.abs(point.x - bannerPressStart.x)
+  const movedY = Math.abs(point.y - bannerPressStart.y)
+
+  if (movedX > bannerDragThreshold || movedY > bannerDragThreshold) {
+    bannerClickSuppressed.value = true
+  }
+}
+
+function handleBannerPressEnd() {
+  if (!bannerClickSuppressed.value) {
+    bannerPressStart = null
+    return
+  }
+
+  bannerClickResetTimer = window.setTimeout(() => {
+    bannerPressStart = null
+    bannerClickSuppressed.value = false
+  }, 160)
+}
+
+function handleBannerClick(banner: BannerItem, event: MouseEvent) {
+  if (bannerClickSuppressed.value) {
+    event.preventDefault()
+    event.stopPropagation()
+    return
+  }
+
   if (banner.jumpType === "none" || !banner.jumpValue) return
 
   if (banner.jumpType === "product") {
@@ -310,6 +365,10 @@ onMounted(() => {
   getHotProductList()
   getHomeNavigationList()
 })
+
+onBeforeUnmount(() => {
+  window.clearTimeout(bannerClickResetTimer)
+})
 </script>
 
 <template>
@@ -328,14 +387,21 @@ onMounted(() => {
         :duration="600"
         :loop="true"
         :show-indicators="false"
+        @mousedown="handleBannerPressStart"
+        @mousemove="handleBannerPressMove"
+        @mouseup="handleBannerPressEnd"
+        @mouseleave="handleBannerPressEnd"
+        @touchstart.passive="handleBannerPressStart"
+        @touchmove.passive="handleBannerPressMove"
+        @touchend="handleBannerPressEnd"
       >
         <van-swipe-item
           v-for="banner in banners"
           :key="banner.id"
           class="home-banner-item"
-          @click="handleBannerClick(banner)"
+          @click="handleBannerClick(banner, $event)"
         >
-          <img :src="banner.image" :alt="banner.title">
+          <img :src="banner.image" :alt="banner.title" draggable="false">
           <div v-if="banner.id === 'local-banner'" class="home-banner-copy">
             <h1>
               Find Verified<br>
@@ -552,6 +618,8 @@ onMounted(() => {
   height: 100%;
   object-fit: cover;
   object-position: center;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 .home-banner-item {
