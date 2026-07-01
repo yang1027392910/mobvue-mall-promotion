@@ -3,8 +3,9 @@ import type { RawBannerItem } from "@@/apis/banner/type"
 import type { RawProcurementContactItem } from "@@/apis/procurementContact/type"
 import { getBannerListApi } from "@@/apis/banner"
 import { getProcurementContactListApi } from "@@/apis/procurementContact"
+import { openTawkChat } from "@@/utils/tawk"
 import { Icon } from "@iconify/vue"
-import { showSuccessToast } from "vant"
+import { showFailToast, showSuccessToast } from "vant"
 import { computed, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 
@@ -230,6 +231,14 @@ async function copyContact(contact: string) {
   showSuccessToast("Copied successfully")
 }
 
+async function handleBannerChat() {
+  try {
+    await openTawkChat()
+  } catch {
+    showFailToast("Customer service is temporarily unavailable")
+  }
+}
+
 onMounted(() => {
   getCustomerBanner()
   getProcurementContacts()
@@ -239,7 +248,7 @@ onMounted(() => {
 <template>
   <div class="support-page">
     <main class="support-content">
-      <section class="support-banner">
+      <button class="support-banner" type="button" @click="handleBannerChat">
         <img
           v-if="bannerLoaded"
           class="support-banner__image"
@@ -247,7 +256,7 @@ onMounted(() => {
           alt="Procurement Support"
           @error="bannerLoaded = false"
         >
-      </section>
+      </button>
       <van-loading
         v-if="contactLoading"
         class="contact-loading"
@@ -326,13 +335,18 @@ onMounted(() => {
 }
 
 .support-banner {
-  width: calc(100% - 30px);
+  width: 100%;
   height: 164px;
-  margin: 0 15px;
+  padding: 0;
   overflow: hidden;
-  border-radius: 18px;
+  border: 0;
+  cursor: pointer;
   background: linear-gradient(135deg, #f4f9ff 0%, #eaf3ff 100%);
   box-shadow: 0 8px 24px rgba(15, 80, 180, 0.1);
+}
+
+.support-banner:active {
+  transform: translateY(1px);
 }
 
 .support-banner__image {
