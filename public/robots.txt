@@ -1,0 +1,11 @@
+User-agent: *
+
+Allow: /
+
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /favorites
+Disallow: /user-verification
+
+Sitemap: https://china2ph.com/sitemap.xml

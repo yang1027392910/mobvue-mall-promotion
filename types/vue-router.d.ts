@@ -8,6 +8,8 @@ declare module "vue-router" {
      * @description 页面标题
      */
     title?: string
+    description?: string
+    robots?: string
     /**
      * @description 设置能进入该路由的角色，支持多个角色叠加，默认不限制角色
      * @default undefined
@@ -45,6 +47,7 @@ declare module "vue-router" {
          * @default false
          */
         showTabbar?: boolean
+        label?: string
         /**
          * @description 图标
          */

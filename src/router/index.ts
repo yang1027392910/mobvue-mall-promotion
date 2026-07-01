@@ -50,7 +50,8 @@ export const routes: RouteRecordRaw[] = [
     component: () => import("@/pages/home/index.vue"),
     name: "Home",
     meta: {
-      title: "Home",
+      title: "YiwuHub - Verified China Suppliers for Philippines Buyers",
+      description: "Find verified China suppliers, compare factory prices, calculate product profits, and source wholesale goods from China for the Philippines.",
       layout: {
         navBar: {
           showNavBar: false,
@@ -58,6 +59,7 @@ export const routes: RouteRecordRaw[] = [
         },
         tabbar: {
           showTabbar: true,
+          label: "Home",
           icon: "home-o"
         },
         footer: true
@@ -77,6 +79,7 @@ export const routes: RouteRecordRaw[] = [
         },
         tabbar: {
           showTabbar: true,
+          label: "Categories",
           icon: "apps-o"
         }
       }
@@ -102,6 +105,7 @@ export const routes: RouteRecordRaw[] = [
     name: "HotProducts",
     meta: {
       title: "Hot Products",
+      description: "Discover trending wholesale products from China, compare costs, Philippine prices, and estimated profit opportunities.",
       layout: {
         navBar: {
           showNavBar: true,
@@ -146,6 +150,7 @@ export const routes: RouteRecordRaw[] = [
     name: "Suppliers",
     meta: {
       title: "Suppliers",
+      description: "Find verified China suppliers and factory-direct sourcing partners for Philippines wholesale buyers.",
       layout: {
         navBar: {
           showNavBar: true,
@@ -175,6 +180,7 @@ export const routes: RouteRecordRaw[] = [
     name: "LogisticsSuppliers",
     meta: {
       title: "Logistics Suppliers",
+      description: "Connect with logistics suppliers for China to Philippines shipping, freight support, and door-to-door delivery.",
       layout: {
         navBar: {
           showNavBar: true,
@@ -189,6 +195,7 @@ export const routes: RouteRecordRaw[] = [
     name: "ProcurementSupport",
     meta: {
       title: "Procurement Support",
+      description: "Contact YiwuHub procurement support for China sourcing, supplier help, product quotations, and buying assistance.",
       layout: {
         navBar: {
           showNavBar: true,
@@ -203,6 +210,7 @@ export const routes: RouteRecordRaw[] = [
     name: "AboutPolicies",
     meta: {
       title: "About & Policies",
+      description: "Learn about YiwuHub, China sourcing policies, buyer support, platform rules, and wholesale procurement guidance.",
       layout: {
         navBar: {
           showNavBar: true,
@@ -255,6 +263,7 @@ export const routes: RouteRecordRaw[] = [
         },
         tabbar: {
           showTabbar: true,
+          label: "Favorites",
           icon: "star-o"
         }
       }
@@ -273,6 +282,7 @@ export const routes: RouteRecordRaw[] = [
         },
         tabbar: {
           showTabbar: true,
+          label: "Profile",
           icon: "user-o"
         }
       }

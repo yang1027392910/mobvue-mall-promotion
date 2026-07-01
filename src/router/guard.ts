@@ -1,5 +1,6 @@
 import type { Router } from "vue-router"
 import { useTitle } from "@@/composables/useTitle"
+import { updateSeoMeta } from "@@/utils/seo"
 import { getToken } from "@@/utils/cache/cookies"
 import NProgress from "nprogress"
 import { useKeepAliveStore } from "@/pinia/stores/keep-alive"
@@ -40,6 +41,7 @@ export function registerNavigationGuard(router: Router) {
     keepAliveStore.addCachedRoute(to)
     // 设置标题
     setTitle(to.meta.title)
+    updateSeoMeta(to)
     NProgress.done()
   })
 }

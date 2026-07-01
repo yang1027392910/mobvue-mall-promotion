@@ -41,7 +41,7 @@ const tabbarRoutes = computed(() => {
       }
 
       return {
-        title: route.meta.title,
+        title: route.meta.layout?.tabbar?.label || route.meta.title,
         path: route.path,
         icon: mapped.icon,
         activeIcon: mapped.activeIcon
