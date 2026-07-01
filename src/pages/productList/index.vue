@@ -254,14 +254,15 @@ watch(categoryId, () => {
 
 .filter-tabs {
   position: sticky;
-  top: 5px;
+  top: 0;
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 4px;
-  margin: -2px -4px 16px;
+  margin: 0 -12px 16px;
   background: #ffffff;
-  padding: 4px;
+  padding: 6px 16px 5px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
 }
 
 .filter-tab {

@@ -52,7 +52,7 @@ interface HomeNavigationItem {
 }
 
 type BannerJumpType = "product" | "category" | "link" | "none"
-type PointerPoint = {
+interface PointerPoint {
   x: number
   y: number
 }
@@ -849,6 +849,7 @@ onBeforeUnmount(() => {
   font-weight: 600;
   line-height: 1;
   border: none;
+  cursor: pointer;
 }
 
 .featured-products__view-all svg {
