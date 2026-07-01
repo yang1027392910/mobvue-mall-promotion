@@ -70,6 +70,8 @@ const supplierActionText = computed(() => {
   if (!realNameVerified.value) return "Verify to Unlock"
   return "Contact Us"
 })
+const activeImageNumber = computed(() => product.value?.images.length ? activeImageIndex.value + 1 : 0)
+const totalImageNumber = computed(() => product.value?.images.length || 1)
 
 function toNumber(value: number | string | undefined, fallback = 0) {
   const numberValue = Number(value)
@@ -256,6 +258,10 @@ function handleContactUs() {
   router.push("/procurement-support")
 }
 
+function handleImageChange(index: number) {
+  activeImageIndex.value = index
+}
+
 async function copySupplierContact(label: string, value: string) {
   const contact = value.trim()
 
@@ -321,6 +327,7 @@ onMounted(() => {
             v-model:active="activeImageIndex"
             class="product-image-swipe"
             indicator-color="#ffffff"
+            @change="handleImageChange"
           >
             <van-swipe-item
               v-for="(image, index) in product.images"
@@ -331,7 +338,7 @@ onMounted(() => {
           </van-swipe>
           <div v-else class="product-image-placeholder" />
           <div class="image-count">
-            {{ product.images.length ? activeImageIndex + 1 : 0 }}/{{ product.images.length || 1 }}
+            {{ activeImageNumber }}/{{ totalImageNumber }}
           </div>
         </section>
 
