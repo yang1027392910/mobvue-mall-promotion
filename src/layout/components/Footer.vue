@@ -229,8 +229,8 @@ function handleContactClick(item: ContactLink, event: MouseEvent) {
 
 .footer-link__icon {
   flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   margin-right: 11px;
   color: #2d73ff;
 }
@@ -354,14 +354,14 @@ function handleContactClick(item: ContactLink, event: MouseEvent) {
   }
 
   .footer-link__icon {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     margin-right: 8px;
   }
 
   .footer-link__arrow {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     margin-left: 6px;
   }
 

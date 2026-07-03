@@ -2,7 +2,7 @@
 import type { ProductItem, RawProductItem } from "@@/apis/products/type"
 import { getProductListApi } from "@@/apis/products"
 import { requireLogin } from "@@/utils/guest-access"
-import { computed, ref } from "vue"
+import { computed, ref, watchEffect } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import ProductCard from "@/components/ProductCard/index.vue"
 
@@ -20,6 +20,10 @@ const errorText = ref("")
 const categoryId = computed(() => route.query.categoryId ? Number(route.query.categoryId) : undefined)
 const categoryName = computed(() => String(route.query.categoryName || "All Products"))
 const products = ref<ProductItem[]>([])
+
+watchEffect(() => {
+  route.meta.title = categoryName.value
+})
 
 const tabs: Array<{ label: string, value: FilterTab }> = [
   { label: "All", value: "all" },

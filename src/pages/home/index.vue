@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { RawBannerItem } from "@@/apis/banner/type"
+import type { RawHomeCategoryProductsSection } from "@@/apis/homeCategoryProducts/type"
 import type { RawHomeNavigationItem } from "@@/apis/homeNavigation/type"
 import type { RawHotProductItem } from "@@/apis/hotProduct/type"
 import { getBannerListApi } from "@@/apis/banner"
+import { getHomeCategoryProductsApi } from "@@/apis/homeCategoryProducts"
 import { getHomeNavigationListApi } from "@@/apis/homeNavigation"
 import { getHotProductListApi } from "@@/apis/hotProduct"
 import { isLoggedIn } from "@@/utils/guest-access"
@@ -61,6 +63,7 @@ const router = useRouter()
 const loading = ref(false)
 const errorText = ref("")
 const products = ref<ProductItem[]>([])
+const categoryProductSections = ref<RawHomeCategoryProductsSection[]>([])
 const rankBadgeImages = [rankNo1, rankNo2, rankNo3]
 const homeNavigations = ref<HomeNavigationItem[]>([
   {
@@ -194,8 +197,12 @@ function getProductRank(index: number) {
   return index % products.value.length + 1
 }
 
-function handleProductClick(product: ProductItem) {
-  router.push({ path: "/product-card", query: { id: product.id } })
+function handleProductClick(product: ProductItem | RawHotProductItem) {
+  const productId = "productId" in product
+    ? product.productId ?? product.id ?? product.spuId ?? product.hotProductId
+    : product.id
+
+  router.push({ path: "/product-card", query: { id: productId } })
 }
 
 function handleCustomerServiceClick() {
@@ -204,6 +211,16 @@ function handleCustomerServiceClick() {
 
 function handleViewAll() {
   router.push("/hot-products")
+}
+
+function handleCategoryViewAll(section: RawHomeCategoryProductsSection) {
+  router.push({
+    path: "/product-list",
+    query: {
+      categoryId: section.categoryId ?? section.id,
+      categoryName: section.categoryName
+    }
+  })
 }
 
 function handleProfitCalculator(target = "/calculator?mode=weight&from=profile") {
@@ -306,7 +323,13 @@ function handleBannerClick(banner: BannerItem, event: MouseEvent) {
   if (banner.jumpType === "product") {
     router.push({ path: "/product-card", query: { id: banner.jumpValue } })
   } else if (banner.jumpType === "category") {
-    router.push({ path: "/product-list", query: { categoryId: banner.jumpValue } })
+    router.push({
+      path: "/product-list",
+      query: {
+        categoryId: banner.jumpValue,
+        categoryName: banner.title
+      }
+    })
   } else if (/^https?:\/\//.test(banner.jumpValue)) {
     window.location.href = banner.jumpValue
   } else {
@@ -326,6 +349,15 @@ async function getHotProductList() {
     errorText.value = error instanceof Error ? error.message : "Failed to load hot products"
   } finally {
     loading.value = false
+  }
+}
+
+async function getHomeCategoryProducts() {
+  try {
+    const { data } = await getHomeCategoryProductsApi()
+    categoryProductSections.value = data
+  } catch {
+    categoryProductSections.value = []
   }
 }
 
@@ -363,6 +395,7 @@ async function getHomeNavigationList() {
 onMounted(() => {
   getBannerList()
   getHotProductList()
+  getHomeCategoryProducts()
   getHomeNavigationList()
 })
 
@@ -507,6 +540,46 @@ onBeforeUnmount(() => {
             <!-- <button type="button">
               View Details
             </button> -->
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section
+      v-for="section in categoryProductSections.slice(0, 3)"
+      :key="section.categoryId ?? section.id"
+      class="category-products"
+    >
+      <div class="featured-products">
+        <div class="featured-products__heading">
+          <div>
+            <h2>{{ section.categoryName }}</h2>
+          </div>
+          <a class="featured-products__view-all" @click="handleCategoryViewAll(section)">
+            View all
+            <Icon icon="weui:arrow-filled" />
+          </a>
+        </div>
+        <div class="product-track">
+          <article
+            v-for="item in section.products.slice(0, 3)"
+            :key="item.id"
+            class="today-card"
+            @click="handleProductClick(item)"
+          >
+            <div class="today-card__image-wrap">
+              <img class="today-card__image" :src="getAssetUrl(item.cover)" :alt="item.name">
+            </div>
+            <h3>{{ item.name }}</h3>
+            <div class="today-card__row">
+              <span>China Cost</span><strong>{{ item.chinaPrice }}</strong>
+            </div>
+            <div class="today-card__row">
+              <span>PH Price</span><strong>{{ item.phPrice }}</strong>
+            </div>
+            <div class="today-card__row">
+              <span>Profit / Item</span><strong>{{ item.profit }}</strong>
+            </div>
           </article>
         </div>
       </div>
@@ -778,6 +851,10 @@ onBeforeUnmount(() => {
   margin-top: 5px;
 }
 
+.category-products {
+  margin-top: 4px;
+}
+
 .section-heading {
   display: flex;
   align-items: center;
@@ -818,7 +895,7 @@ onBeforeUnmount(() => {
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 2px 10px;
+  padding: 0 2px 0;
 }
 
 .featured-products__eyebrow {
@@ -837,6 +914,10 @@ onBeforeUnmount(() => {
   font-weight: 800;
   font-size: 13px;
   line-height: 30px;
+}
+
+.featured-products__heading h2::first-letter {
+  text-transform: uppercase;
 }
 
 .featured-products__view-all {
@@ -865,7 +946,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  padding: 2px 0 12px;
+  padding: 2px 0 2px;
 }
 
 .today-card {

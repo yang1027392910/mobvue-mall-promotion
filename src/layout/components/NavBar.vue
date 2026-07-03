@@ -5,7 +5,13 @@ const route = useRoute()
 
 const router = useRouter()
 
-const title = computed(() => route.meta.title)
+const title = computed(() => {
+  if (route.name === "ProductList" && route.query.categoryName) {
+    return String(route.query.categoryName)
+  }
+
+  return route.meta.title
+})
 
 const showLeftArrow = computed(() => route.meta.layout?.navBar?.showLeftArrow)
 const showRightShare = computed(() => route.meta.layout?.navBar?.showRightShare)
