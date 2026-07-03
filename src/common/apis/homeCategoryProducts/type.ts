@@ -10,6 +10,7 @@ export interface RawHomeCategoryProductsSection {
   name?: string
   title?: string
   categoryName?: string
+  alice?: string
   products: RawHomeCategoryProductItem[]
   sort?: number | string
   status?: number | string

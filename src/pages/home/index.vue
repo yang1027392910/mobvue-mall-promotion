@@ -218,7 +218,7 @@ function handleCategoryViewAll(section: RawHomeCategoryProductsSection) {
     path: "/product-list",
     query: {
       categoryId: section.categoryId ?? section.id,
-      categoryName: section.categoryName
+      categoryName: section.alice
     }
   })
 }
@@ -553,7 +553,7 @@ onBeforeUnmount(() => {
       <div class="featured-products">
         <div class="featured-products__heading">
           <div>
-            <h2>{{ section.categoryName }}</h2>
+            <h2>{{ section.alice }}</h2>
           </div>
           <a class="featured-products__view-all" @click="handleCategoryViewAll(section)">
             View all
