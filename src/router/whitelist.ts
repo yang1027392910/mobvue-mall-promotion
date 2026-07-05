@@ -6,6 +6,7 @@ const whiteListByPath: string[] = [
   "/home",
   "/categories",
   "/hot-products",
+  "/search",
   "/product-list",
   "/product/list",
   "/product-card",

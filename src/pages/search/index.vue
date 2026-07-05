@@ -42,6 +42,7 @@ const popularSearches = ["Toy", "Pet", "Kitchen", "Beauty", "Electronic", "Bag"]
 const loading = ref(false)
 const loadingMore = ref(false)
 const errorText = ref("")
+const keywordError = ref("")
 const hasSearched = ref(Boolean(searchedKeyword.value))
 const recentSearches = ref<string[]>([])
 const favoriteLoadingIds = ref<number[]>([])
@@ -119,6 +120,16 @@ function formatMoney(value: number) {
 
 function handleClear() {
   keyword.value = ""
+  keywordError.value = ""
+  searchedKeyword.value = ""
+  products.value = []
+  total.value = 0
+  page.value = 1
+  errorText.value = ""
+  hasSearched.value = false
+  loading.value = false
+  loadingMore.value = false
+  router.replace("/search")
 }
 
 function getStoredRecentSearches() {
@@ -151,6 +162,7 @@ function addRecentSearch(value: string) {
 
 function handleRecentSearch(value: string) {
   keyword.value = value
+  keywordError.value = ""
   searchProducts()
 }
 
@@ -187,9 +199,10 @@ async function handleFavorite(product: SearchProduct) {
   }
 }
 
-async function searchProducts(reset = true) {
+async function searchProducts(reset = true, showEmptyToast = false) {
   const nextKeyword = keyword.value.trim()
   if (!nextKeyword) {
+    keywordError.value = showEmptyToast ? "Please enter a search keyword" : ""
     searchedKeyword.value = ""
     products.value = []
     total.value = 0
@@ -199,6 +212,7 @@ async function searchProducts(reset = true) {
 
   if (loading.value || loadingMore.value) return
 
+  keywordError.value = ""
   hasSearched.value = true
   searchedKeyword.value = nextKeyword
   errorText.value = ""
@@ -260,7 +274,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="search-page">
     <header class="search-header">
-      <form class="search-box" action="" @submit.prevent="searchProducts()">
+      <form class="search-box" action="" @submit.prevent="searchProducts(true, true)">
         <input
           v-model.trim="keyword"
           type="text"
@@ -274,6 +288,9 @@ onBeforeUnmount(() => {
           <Icon icon="solar:magnifer-linear" />
         </button>
       </form>
+      <p v-if="keywordError" class="search-keyword-error">
+        {{ keywordError }}
+      </p>
     </header>
 
     <main class="search-content">
@@ -465,6 +482,13 @@ onBeforeUnmount(() => {
   color: #98a2b3;
   font-size: 21px;
   background: transparent;
+}
+
+.search-keyword-error {
+  margin: 5px 8px 0;
+  color: #f04b0b;
+  font-size: 11px;
+  line-height: 14px;
 }
 
 .search-content {
