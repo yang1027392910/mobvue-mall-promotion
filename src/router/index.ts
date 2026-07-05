@@ -100,6 +100,20 @@ export const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: "/search",
+    component: () => import("@/pages/search/index.vue"),
+    name: "Search",
+    meta: {
+      title: "Search",
+      layout: {
+        navBar: {
+          showNavBar: true,
+          showLeftArrow: true
+        }
+      }
+    }
+  },
+  {
     path: "/hot-products",
     component: () => import("@/pages/hotProducts/index.vue"),
     name: "HotProducts",

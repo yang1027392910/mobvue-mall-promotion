@@ -29,8 +29,13 @@ export interface RawProductItem {
   shippingFee?: number | string
   otherFees?: number | string
   profit?: number | string
+  profitRate?: number | string
+  profitMargin?: number | string
   stock?: number | string
   minimumOrderQuantity?: number | string
+  minOrder?: number | string
+  minOrderQuantity?: number | string
+  moq?: number | string
   status?: number | string
   phPrice?: number | string
   price?: number | string
@@ -61,6 +66,14 @@ export interface ProductListRequestData {
   categoryId?: number
 }
 
+export interface ProductSearchRequestData {
+  keyword: string
+  page: number
+  pageSize: number
+}
+
 export type ProductListResponseData = ApiResponseData<RawProductItem[] | ProductListPageData>
+
+export type ProductSearchResponseData = ApiResponseData<RawProductItem[] | ProductListPageData>
 
 export type ProductDetailResponseData = ApiResponseData<RawProductItem>

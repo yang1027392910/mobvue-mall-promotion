@@ -213,6 +213,10 @@ function handleCustomerServiceClick() {
   router.push("/procurement-support")
 }
 
+function handleSearchClick() {
+  router.push("/search")
+}
+
 function handleViewAll() {
   router.push("/hot-products")
 }
@@ -416,7 +420,6 @@ onBeforeUnmount(() => {
         <Icon icon="mdi:customer-service" />
       </button>
     </header>
-
     <div class="home-banner">
       <van-swipe
         class="home-banner-swipe"
@@ -466,6 +469,11 @@ onBeforeUnmount(() => {
         </van-swipe-item>
       </van-swipe>
     </div>
+
+    <button class="home-search-entry" type="button" aria-label="Search products" @click="handleSearchClick">
+      <Icon icon="solar:magnifer-linear" />
+      <span>Search products</span>
+    </button>
 
     <section
       class="platform-stats"
@@ -632,7 +640,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .page-home {
   /* min-height: 100vh; */
-  padding: 50px 12px 10px;
+  padding: 40px 12px 10px;
   overflow-x: hidden;
   background: #f7faff;
 }
@@ -647,7 +655,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 50px;
+  min-height: 40px;
   padding: 0 12px 0;
   background: #f7faff;
   transform: translateX(-50%);
@@ -672,8 +680,36 @@ onBeforeUnmount(() => {
   place-items: center;
 }
 
+.home-search-entry {
+  position: relative;
+  z-index: 19;
+  width: 100%;
+  height: 35px;
+  margin: 8px 0 0;
+  border: 1px solid #dbe7fb;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  color: #8aa0bd;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  background: #ffffff;
+  box-shadow: 0 5px 14px rgba(22, 119, 255, 0.08);
+}
+
+.home-search-entry svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: #1677ff;
+}
+
 .home-banner {
   position: relative;
+  z-index: 1;
   width: calc(100% + 24px);
   margin-left: -10px;
   overflow: hidden;
@@ -684,7 +720,7 @@ onBeforeUnmount(() => {
 
 .home-banner-swipe {
   width: 100%;
-  aspect-ratio: 343 / 220;
+  aspect-ratio: 363 / 160;
 }
 
 .home-banner :deep(.van-swipe__track),
@@ -763,9 +799,9 @@ onBeforeUnmount(() => {
 .platform-stats {
   position: relative;
   z-index: 3;
-  margin: -20px 0 0;
+  margin: 8px 0 0;
   border: 1px solid rgba(219, 228, 244, 0.8);
-  border-radius: 13px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 7px 20px rgba(42, 73, 122, 0.1);
   overflow: hidden;
@@ -775,7 +811,7 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: repeat(var(--navigation-count), minmax(0, 1fr));
   gap: 4px;
-  padding: 11px 0 10px;
+  padding: 5px 0 5px;
 }
 
 .platform-stats--scrollable {
