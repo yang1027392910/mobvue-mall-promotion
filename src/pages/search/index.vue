@@ -524,23 +524,23 @@ onBeforeUnmount(() => {
 .recent-searches__chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 14px;
+  gap: 6px;
 }
 
 .recent-chip {
+  position: relative;
   max-width: 100%;
-  height: 30px;
+  height: 25px;
   border: 0;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 3px;
   color: #101828;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 30px;
+  line-height: 25px;
+  padding: 0 18px 0 12px;
   background: #f2f5fb;
 }
 
@@ -552,10 +552,15 @@ onBeforeUnmount(() => {
 }
 
 .recent-chip svg {
-  width: 17px;
-  height: 17px;
-  flex: 0 0 auto;
-  color: #98a2b3;
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  padding: 2px;
+  color: #ffffff;
+  background: #98a2b3;
 }
 
 .popular-searches {
@@ -564,18 +569,18 @@ onBeforeUnmount(() => {
 }
 
 .popular-chip {
-  height: 34px;
+  height: 20px;
   border: 0;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  padding: 0 3px;
   color: #1677ff;
   font: inherit;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  line-height: 34px;
+  line-height: 20px;
   background: #eef6ff;
+  padding: 0 8px;
 }
 
 .search-empty-state {
