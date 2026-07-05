@@ -151,8 +151,7 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
     params: [
       { icon: "orders-o", label: "Min Order", value: `${minimumOrderQuantity} pcs` },
       { icon: "cart-o", label: "Stock", value: `${toNumber(item.stock)} pcs` },
-      { icon: "logistics", label: "Shipping Fee", value: formatPeso(shippingFee) },
-      { icon: "apps-o", label: "Category ID", value: String(toNumber(item.categoryId)) }
+      { icon: "logistics", label: "Shipping Fee", value: formatPeso(shippingFee) }
 
     ]
   }

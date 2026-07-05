@@ -189,6 +189,10 @@ function normalizeHotProduct(item: RawHotProductItem, index: number): ProductIte
   }
 }
 
+function getRawProductTitle(item: RawHotProductItem) {
+  return String(item.name ?? item.productName ?? item.goodsName ?? item.title ?? "Unnamed Product")
+}
+
 function getRankBadgeImage(index: number) {
   return rankBadgeImages[index % products.value.length] || ""
 }
@@ -527,7 +531,9 @@ onBeforeUnmount(() => {
                 :alt="`No. ${getProductRank(index)}`"
               >
             </div>
-            <h3>{{ item.name }}</h3>
+            <h3 :title="item.name">
+              {{ item.name }}
+            </h3>
             <div class="today-card__row">
               <span>China Cost</span><strong>{{ item.cost }}</strong>
             </div>
@@ -568,9 +574,11 @@ onBeforeUnmount(() => {
             @click="handleProductClick(item)"
           >
             <div class="today-card__image-wrap">
-              <img class="today-card__image" :src="getAssetUrl(item.cover)" :alt="item.name">
+              <img class="today-card__image" :src="getAssetUrl(item.cover)" :alt="getRawProductTitle(item)">
             </div>
-            <h3>{{ item.name }}</h3>
+            <h3 :title="getRawProductTitle(item)">
+              {{ getRawProductTitle(item) }}
+            </h3>
             <div class="today-card__row">
               <span>China Cost</span><strong>{{ item.chinaPrice }}</strong>
             </div>
