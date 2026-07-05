@@ -255,6 +255,10 @@ function handleBackHome() {
   router.push("/")
 }
 
+function handleCustomerService() {
+  router.push("/procurement-support")
+}
+
 function handleNewUserDialogVisible(value: boolean) {
   showNewUserVerificationDialog.value = value
   if (!value && !isVerificationRouting.value) {
@@ -371,6 +375,10 @@ onBeforeUnmount(() => {
           >
             Continue
           </van-button>
+
+          <button class="need-help-button" type="button" @click="handleCustomerService">
+            Need help?
+          </button>
         </van-form>
       </section>
 
@@ -759,6 +767,20 @@ onBeforeUnmount(() => {
   font-weight: 700;
   background: linear-gradient(90deg, #2563eb 0%, #0a84ff 100%);
   box-shadow: 0 14px 26px rgba(37, 99, 235, 0.26);
+}
+
+.need-help-button {
+  width: 100%;
+  margin-top: 10px;
+  border: 0;
+  padding: 0;
+  color: #1677ff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  background: transparent;
 }
 
 :global(.email-code-loading-toast) {
