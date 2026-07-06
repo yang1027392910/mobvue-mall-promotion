@@ -150,7 +150,6 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
     supplierContact,
     params: [
       { icon: "orders-o", label: "Min Order", value: `${minimumOrderQuantity} pcs` },
-      { icon: "cart-o", label: "Stock", value: `${toNumber(item.stock)} pcs` },
       { icon: "logistics", label: "Shipping Fee", value: formatPeso(shippingFee) }
 
     ]
@@ -346,8 +345,28 @@ onMounted(() => {
             {{ product.name }}
           </h1>
           <div class="score-row">
-            <van-icon name="fire-o" />
-            <span>Sales {{ product.sales }}</span>
+            <div class="sales-row">
+              <van-icon class="score-icon sales" name="fire-o" />
+              <div class="score-label">
+                Already sold
+              </div>
+              <div class="score-value sales">
+                {{ product.sales }}
+              </div>
+            </div>
+            <div
+              v-for="item in product.params"
+              :key="item.label"
+              class="sales-row"
+            >
+              <van-icon class="score-icon" :name="item.icon" />
+              <div class="score-label">
+                {{ item.label }}
+              </div>
+              <div class="score-value">
+                {{ item.value }}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -388,23 +407,7 @@ onMounted(() => {
           </div>
         </section>
 
-        <section class="params-card">
-          <div
-            v-for="item in product.params"
-            :key="item.label"
-            class="param-row"
-          >
-            <div class="param-left">
-              <van-icon :name="item.icon" />
-              <span>{{ item.label }}</span>
-            </div>
-            <div class="param-value">
-              {{ item.value }}
-            </div>
-          </div>
-        </section>
-
-        <section class="description-card">
+        <section v-if="product.description.trim()" class="description-card">
           <p class="product-description">
             {{ product.description }}
           </p>
@@ -625,7 +628,6 @@ onMounted(() => {
 
 .basic-section,
 .profit-card,
-.params-card,
 .description-card {
   margin: 8px 8px 0;
   border-radius: 16px;
@@ -635,7 +637,7 @@ onMounted(() => {
 }
 
 .basic-section {
-  padding: 10px;
+  padding: 0 10px 10px;
 }
 
 .product-name {
@@ -647,13 +649,51 @@ onMounted(() => {
 }
 
 .score-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 10px;
+  margin-top: 5px;
+}
+
+.sales-row {
+  min-width: 0;
+  text-align: center;
+}
+
+.score-icon {
+  margin-bottom: 4px;
+  color: #2563eb;
+  font-size: 17px;
+}
+
+.score-icon.sales {
   color: #ff5a1f;
+}
+
+.score-label {
+  min-width: 0;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-value {
+  min-width: 0;
+  margin-top: 4px;
+  color: #2563eb;
   font-size: 14px;
   font-weight: 700;
+  line-height: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-value.sales {
+  color: #ff5a1f;
 }
 
 .product-subtitle,
@@ -711,47 +751,6 @@ onMounted(() => {
 
 .price-value.profit {
   color: #16a34a;
-}
-
-.params-card {
-  overflow: hidden;
-}
-
-.param-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 5px;
-  min-height: 40px;
-  padding: 0 10x;
-  border-bottom: 1px solid #eef2f7;
-}
-
-.param-row:last-child {
-  border-bottom: 0;
-}
-
-.param-left {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.param-left .van-icon {
-  color: #2563eb;
-  font-size: 18px;
-}
-
-.param-value {
-  min-width: 0;
-  color: #111827;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  text-align: right;
 }
 
 .supplier-permission-card {

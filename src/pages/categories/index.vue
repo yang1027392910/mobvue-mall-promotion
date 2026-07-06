@@ -240,20 +240,20 @@ onMounted(() => {
 .category-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 12px;
   margin: 10px 10px 0;
 }
 
 .category-item {
   position: relative;
   min-width: 0;
-  height: 90px;
+  height: 60px;
   display: flex;
   align-items: center;
   overflow: hidden;
   border-radius: 18px;
   background: #ffffff;
-  padding: 5px;
+  padding: 0 5px;
   box-shadow: 0 8px 24px rgba(20, 40, 80, 0.07);
   cursor: pointer;
 }
@@ -261,9 +261,9 @@ onMounted(() => {
 .category-icon {
   /* flex: 0 0 56px; */
   width: 40px;
-  height: 60px;
+  height: 75px;
   border-radius: 16px;
-  background: #eef6ff;
+  /* background: #eef6ff; */
   color: #0b6bff;
   font-size: 16px;
   display: grid;
@@ -311,7 +311,7 @@ onMounted(() => {
   place-items: center;
   color: #8a96aa;
   font-size: 16px;
-  background: #f2f6fc;
+  /* background: #f2f6fc; */
   transform: translateY(-50%);
 }
 
