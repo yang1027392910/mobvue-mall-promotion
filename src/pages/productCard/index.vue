@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RawProductItem } from "@@/apis/products/type"
 import { favoriteClickApi } from "@@/apis/favorite"
-import { getProductDetailApi } from "@@/apis/products"
+import { getProductAiContentApi, getProductDetailApi } from "@@/apis/products"
 import VerifiedAccessDialog from "@@/components/VerifiedAccessDialog.vue"
 import { requireLogin } from "@@/utils/guest-access"
 import { Icon } from "@iconify/vue"
@@ -72,6 +72,7 @@ const supplierActionText = computed(() => {
 })
 const activeImageNumber = computed(() => product.value?.images.length ? activeImageIndex.value + 1 : 0)
 const totalImageNumber = computed(() => product.value?.images.length || 1)
+const productDescriptionHtml = computed(() => sanitizeRichText(product.value?.description ?? ""))
 
 function toNumber(value: number | string | undefined, fallback = 0) {
   const numberValue = Number(value)
@@ -103,6 +104,74 @@ function parseImages(images?: string | string[]) {
   } catch {
     return []
   }
+}
+
+function isSafeUrl(value: string) {
+  const url = value.trim().replace(/[\u0000-\u001F\u007F\s]+/g, "")
+
+  if (!url) return true
+  if (/^(https?:|mailto:|tel:|\/|#)/i.test(url)) return true
+  return /^data:image\/(?:png|jpe?g|gif|webp);base64,/i.test(url)
+}
+
+function sanitizeInlineStyle(value: string) {
+  return value
+    .split(";")
+    .map(item => item.trim())
+    .filter((item) => {
+      if (!item) return false
+      return !/expression|url\s*\(|behavior|-moz-binding/i.test(item)
+    })
+    .join("; ")
+}
+
+function sanitizeRichText(html: string) {
+  if (!html.trim() || typeof document === "undefined") return ""
+
+  const template = document.createElement("template")
+  template.innerHTML = html
+
+  template.content
+    .querySelectorAll("script, iframe, object, embed, form, input, button, textarea, select, meta, link, style")
+    .forEach(element => element.remove())
+
+  template.content.querySelectorAll("*").forEach((element) => {
+    Array.from(element.attributes).forEach((attribute) => {
+      const name = attribute.name.toLowerCase()
+      const value = attribute.value
+
+      if (name.startsWith("on") || name === "srcdoc") {
+        element.removeAttribute(attribute.name)
+        return
+      }
+
+      if (name === "style") {
+        const safeStyle = sanitizeInlineStyle(value)
+        if (safeStyle) element.setAttribute(attribute.name, safeStyle)
+        else element.removeAttribute(attribute.name)
+        return
+      }
+
+      if ((name === "href" || name === "src" || name === "xlink:href") && !isSafeUrl(value)) {
+        element.removeAttribute(attribute.name)
+      }
+    })
+  })
+
+  return template.innerHTML
+}
+
+function getAiContentText(data: unknown) {
+  if (typeof data === "string") return data
+  if (!data || typeof data !== "object") return ""
+
+  const contentData = data as Record<string, unknown>
+  const content = contentData.content
+    ?? contentData.aiContent
+    ?? contentData.description
+    ?? contentData.productDescription
+
+  return typeof content === "string" ? content : ""
 }
 
 function normalizeProduct(item: RawProductItem): ProductDetail {
@@ -170,10 +239,24 @@ async function getProductDetail() {
     product.value = normalizedProduct
     activeImageIndex.value = 0
     isFavorite.value = normalizedProduct.isFavorite
+    void getProductAiContent(normalizedProduct.id)
   } catch (error) {
     errorText.value = error instanceof Error ? error.message : "Failed to load product"
   } finally {
     loading.value = false
+  }
+}
+
+async function getProductAiContent(id: number) {
+  try {
+    const { data } = await getProductAiContentApi(id)
+    const aiContent = getAiContentText(data).trim()
+
+    if (product.value && product.value.id === id && aiContent) {
+      product.value.description = aiContent
+    }
+  } catch {
+    // AI content is supplemental; keep the normal product detail visible if it fails.
   }
 }
 
@@ -407,10 +490,8 @@ onMounted(() => {
           </div>
         </section>
 
-        <section v-if="product.description.trim()" class="description-card">
-          <p class="product-description">
-            {{ product.description }}
-          </p>
+        <section v-if="productDescriptionHtml.trim()" class="description-card">
+          <div class="product-description" v-html="productDescriptionHtml" />
         </section>
 
         <section
@@ -702,10 +783,65 @@ onMounted(() => {
   color: #6b7280;
   font-size: 14px;
   line-height: 21px;
+  overflow-wrap: anywhere;
 }
 
 .description-card {
-  padding: 14px 16px;
+  padding: 10px;
+}
+::v-deep(.description-card .product-description h3) {
+  padding: 0;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 30px;
+  color: #111827;
+}
+.product-description :deep(p) {
+  text-indent: 2ch;
+  font-size: 12px;
+  color: #374151;
+}
+.product-description :deep(p),
+.product-description :deep(ul),
+.product-description :deep(ol),
+.product-description :deep(blockquote),
+.product-description :deep(figure) {
+  margin: 0 0 5px;
+  font-size: 12px;
+}
+
+.product-description :deep(p:last-child),
+.product-description :deep(ul:last-child),
+.product-description :deep(ol:last-child),
+.product-description :deep(blockquote:last-child),
+.product-description :deep(figure:last-child) {
+  margin-bottom: 0;
+}
+
+.product-description :deep(img),
+.product-description :deep(video) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.product-description :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.product-description :deep(th),
+.product-description :deep(td) {
+  border: 1px solid #e5e7eb;
+  padding: 6px;
+  vertical-align: top;
+}
+
+.product-description :deep(a) {
+  color: #2563eb;
+  text-decoration: underline;
 }
 
 .product-subtitle {

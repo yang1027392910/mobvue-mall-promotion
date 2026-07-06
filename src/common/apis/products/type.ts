@@ -77,3 +77,12 @@ export type ProductListResponseData = ApiResponseData<RawProductItem[] | Product
 export type ProductSearchResponseData = ApiResponseData<RawProductItem[] | ProductListPageData>
 
 export type ProductDetailResponseData = ApiResponseData<RawProductItem>
+
+export interface ProductAiContentData {
+  content?: string
+  aiContent?: string
+  description?: string
+  productDescription?: string
+}
+
+export type ProductAiContentResponseData = ApiResponseData<string | ProductAiContentData | null>

@@ -23,3 +23,10 @@ export function getProductDetailApi(id: number | string) {
     method: "get"
   })
 }
+
+export function getProductAiContentApi(productId: number | string) {
+  return request<Products.ProductAiContentResponseData>({
+    url: `h5/product/ai-content/${productId}`,
+    method: "get"
+  })
+}
