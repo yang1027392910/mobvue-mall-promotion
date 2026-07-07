@@ -3,6 +3,7 @@ import { useTitle } from "@@/composables/useTitle"
 import { updateSeoMeta } from "@@/utils/seo"
 import { getToken } from "@@/utils/cache/cookies"
 import NProgress from "nprogress"
+import { nextTick } from "vue"
 import { useKeepAliveStore } from "@/pinia/stores/keep-alive"
 import { useUserStore } from "@/pinia/stores/user"
 import { isWhiteList } from "@/router/whitelist"
@@ -12,6 +13,14 @@ NProgress.configure({ showSpinner: false })
 const { setTitle } = useTitle()
 
 const LOGIN_PATH = "/login"
+
+function getDocumentTitle(meta: Router["currentRoute"]["value"]["meta"]) {
+  return meta.seoTitle || meta.title
+}
+
+function isDynamicSeo(meta: Router["currentRoute"]["value"]["meta"]) {
+  return meta.dynamicSeo === true
+}
 
 export function registerNavigationGuard(router: Router) {
   // 全局前置守卫
@@ -40,8 +49,14 @@ export function registerNavigationGuard(router: Router) {
     // 添加路由缓存
     keepAliveStore.addCachedRoute(to)
     // 设置标题
-    setTitle(to.meta.title)
-    updateSeoMeta(to)
+    if (!isDynamicSeo(to.meta)) {
+      nextTick(() => {
+        if (router.currentRoute.value.fullPath !== to.fullPath) return
+
+        setTitle(getDocumentTitle(to.meta))
+        updateSeoMeta(to)
+      })
+    }
     NProgress.done()
   })
 }

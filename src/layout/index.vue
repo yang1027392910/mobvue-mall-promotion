@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useKeepAliveStore } from "@/pinia/stores/keep-alive"
+import { installSeoHead } from "@/composables/useSeo"
 import Footer from "./components/Footer.vue"
 import NavBar from "./components/NavBar.vue"
 import Tabbar from "./components/Tabbar.vue"
@@ -9,6 +10,8 @@ const route = useRoute()
 const keepAliveStore = useKeepAliveStore()
 
 const pageScroller = ref<HTMLElement | null>(null)
+
+installSeoHead()
 
 const showNavBar = computed(() => route.meta.layout?.navBar?.showNavBar)
 

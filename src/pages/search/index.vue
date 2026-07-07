@@ -7,6 +7,7 @@ import { Icon } from "@iconify/vue"
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import noDateImage from "@/assets/serch/no_date.png"
+import { useSeo } from "@/composables/useSeo"
 
 interface SearchProduct {
   id: number
@@ -30,6 +31,7 @@ interface ListLikeData<T> {
 
 const route = useRoute()
 const router = useRouter()
+const { setSearchSeo } = useSeo()
 
 const keyword = ref(String(route.query.keyword || ""))
 const searchedKeyword = ref(keyword.value.trim())
@@ -118,7 +120,7 @@ function formatMoney(value: number) {
   return `\u20B1${value.toFixed(2)}`
 }
 
-function handleClear() {
+async function handleClear() {
   keyword.value = ""
   keywordError.value = ""
   searchedKeyword.value = ""
@@ -129,7 +131,8 @@ function handleClear() {
   hasSearched.value = false
   loading.value = false
   loadingMore.value = false
-  router.replace("/search")
+  await router.replace("/search")
+  setSearchSeo()
 }
 
 function getStoredRecentSearches() {
@@ -207,6 +210,7 @@ async function searchProducts(reset = true, showEmptyToast = false) {
     products.value = []
     total.value = 0
     hasSearched.value = false
+    setSearchSeo()
     return
   }
 
@@ -238,12 +242,13 @@ async function searchProducts(reset = true, showEmptyToast = false) {
     if (reset) addRecentSearch(nextKeyword)
     if (nextProducts.length > 0) page.value += 1
 
-    router.replace({
+    await router.replace({
       path: "/search",
       query: {
         keyword: nextKeyword
       }
     })
+    setSearchSeo(nextKeyword)
   } catch (error) {
     errorText.value = error instanceof Error ? error.message : "Search failed"
   } finally {
@@ -263,6 +268,7 @@ onMounted(() => {
   const storedRecentSearches = getStoredRecentSearches()
   recentSearches.value = storedRecentSearches ?? []
   window.addEventListener("scroll", handleScroll, { passive: true })
+  setSearchSeo(keyword.value)
   if (keyword.value.trim()) searchProducts()
 })
 

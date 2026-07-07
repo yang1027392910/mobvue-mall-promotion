@@ -1,4 +1,5 @@
 import type { RouteLocationNormalizedLoaded, RouteMeta } from "vue-router"
+import { setManagedSeo } from "@/composables/useSeo"
 
 const SITE_URL = "https://china2ph.com"
 const SITE_NAME = "YiwuHub"
@@ -8,7 +9,10 @@ const DEFAULT_IMAGE = `${SITE_URL}/pwa-512x512.png`
 
 type SeoRouteMeta = RouteMeta & {
   description?: string
+  dynamicSeo?: boolean
   robots?: string
+  seoTitle?: string
+  seoKeywords?: string | string[]
 }
 
 function getSeoMeta(route: RouteLocationNormalizedLoaded) {
@@ -16,13 +20,26 @@ function getSeoMeta(route: RouteLocationNormalizedLoaded) {
 }
 
 function getRouteTitle(route: RouteLocationNormalizedLoaded) {
+  const seoTitle = String(getSeoMeta(route).seoTitle || "").trim()
+  if (seoTitle) return seoTitle
+
   const title = String(getSeoMeta(route).title || "").trim()
   if (!title || route.path === "/") return DEFAULT_TITLE
-  return `${title} | ${SITE_NAME}`
+  return title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`
 }
 
 function getRouteDescription(route: RouteLocationNormalizedLoaded) {
   return String(getSeoMeta(route).description || DEFAULT_DESCRIPTION)
+}
+
+function getRouteKeywords(route: RouteLocationNormalizedLoaded) {
+  const keywords = getSeoMeta(route).seoKeywords
+
+  if (Array.isArray(keywords)) {
+    return keywords.map(keyword => String(keyword).trim()).filter(Boolean).join(",")
+  }
+
+  return String(keywords || "").trim()
 }
 
 function getCanonicalUrl(route: RouteLocationNormalizedLoaded) {
@@ -67,15 +84,26 @@ function setCanonical(href: string) {
 
 export function updateSeoMeta(route: RouteLocationNormalizedLoaded) {
   if (typeof document === "undefined") return
+  if (getSeoMeta(route).dynamicSeo) return
 
   const title = getRouteTitle(route)
   const description = getRouteDescription(route)
+  const keywords = getRouteKeywords(route)
   const canonicalUrl = getCanonicalUrl(route)
   const robots = String(getSeoMeta(route).robots || "index, follow")
+
+  setManagedSeo({
+    title,
+    description,
+    keywords,
+    image: DEFAULT_IMAGE,
+    url: canonicalUrl
+  })
 
   document.title = title
 
   setMeta("description", description)
+  setMeta("keywords", keywords)
   setMeta("robots", robots)
   setMeta("twitter:title", title)
   setMeta("twitter:description", description)

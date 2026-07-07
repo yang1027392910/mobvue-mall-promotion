@@ -5,11 +5,13 @@ import { requireLogin } from "@@/utils/guest-access"
 import { computed, ref, watchEffect } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import ProductCard from "@/components/ProductCard/index.vue"
+import { useSeo } from "@/composables/useSeo"
 
 type FilterTab = "all" | "best" | "newest" | "price"
 
 const route = useRoute()
 const router = useRouter()
+const { setProductListSeo } = useSeo()
 
 const activeTab = ref<FilterTab>("all")
 const priceAsc = ref(true)
@@ -23,6 +25,7 @@ const products = ref<ProductItem[]>([])
 
 watchEffect(() => {
   route.meta.title = categoryName.value
+  setProductListSeo(categoryName.value)
 })
 
 const tabs: Array<{ label: string, value: FilterTab }> = [

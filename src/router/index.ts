@@ -34,15 +34,10 @@ export const routes: RouteRecordRaw[] = [
     component: () => import("@/pages/login/index.vue"),
     name: "Login",
     meta: {
-      title: "登录"
-    }
-  },
-  {
-    path: "/register",
-    component: () => import("@/pages/register/index.vue"),
-    name: "Register",
-    meta: {
-      title: "Register"
+      title: "Login",
+      seoTitle: "Login",
+      description: "Sign in to your YiwuHub account to access verified China suppliers, manage favorites, calculate import profits, and connect with wholesale suppliers.",
+      seoKeywords: "YiwuHub login, sign in, China wholesale platform, verified China suppliers"
     }
   },
   {
@@ -50,8 +45,10 @@ export const routes: RouteRecordRaw[] = [
     component: () => import("@/pages/home/index.vue"),
     name: "Home",
     meta: {
-      title: "YiwuHub - Verified China Suppliers for Philippines Buyers",
+      title: "Home",
+      seoTitle: "YiwuHub - Verified China Suppliers for Philippines Buyers",
       description: "Find verified China suppliers, compare factory prices, calculate product profits, and source wholesale goods from China for the Philippines.",
+      seoKeywords: "China suppliers, Philippines wholesale, Yiwu suppliers, import from China",
       layout: {
         navBar: {
           showNavBar: false,
@@ -72,6 +69,9 @@ export const routes: RouteRecordRaw[] = [
     name: "Categories",
     meta: {
       title: "Categories",
+      seoTitle: "China Wholesale Categories | YiwuHub",
+      description: "Browse through our extensive range of wholesale products from China, categorized for easy navigation and selection.",
+      seoKeywords: "China wholesale categories, Philippines import, Yiwu products",
       layout: {
         navBar: {
           showNavBar: true,
@@ -91,6 +91,7 @@ export const routes: RouteRecordRaw[] = [
     name: "ProductList",
     meta: {
       title: "Product List",
+      dynamicSeo: true,
       layout: {
         navBar: {
           showNavBar: true,
@@ -105,6 +106,7 @@ export const routes: RouteRecordRaw[] = [
     name: "Search",
     meta: {
       title: "Search",
+      dynamicSeo: true,
       layout: {
         navBar: {
           showNavBar: true,
@@ -119,7 +121,9 @@ export const routes: RouteRecordRaw[] = [
     name: "HotProducts",
     meta: {
       title: "Hot Products",
-      description: "Discover trending wholesale products from China, compare costs, Philippine prices, and estimated profit opportunities.",
+      seoTitle: "Hot Wholesale Products from China | YiwuHub",
+      description: "Discover trending wholesale products from verified China suppliers. Compare factory prices, Philippine selling prices, and estimated profit opportunities.",
+      seoKeywords: "hot wholesale products, trending China products, China suppliers, factory direct, Philippines wholesale, profitable products",
       layout: {
         navBar: {
           showNavBar: true,
@@ -134,6 +138,7 @@ export const routes: RouteRecordRaw[] = [
     name: "ProductCard",
     meta: {
       title: "Product Details",
+      dynamicSeo: true,
       layout: {
         navBar: {
           showNavBar: true,
@@ -164,7 +169,9 @@ export const routes: RouteRecordRaw[] = [
     name: "Suppliers",
     meta: {
       title: "Suppliers",
+      seoTitle: "Verified China Suppliers for Philippines Buyers | YiwuHub",
       description: "Find verified China suppliers and factory-direct sourcing partners for Philippines wholesale buyers.",
+      seoKeywords: "verified China suppliers, factory direct suppliers, Philippines wholesale suppliers, Yiwu sourcing",
       layout: {
         navBar: {
           showNavBar: true,
@@ -194,7 +201,9 @@ export const routes: RouteRecordRaw[] = [
     name: "LogisticsSuppliers",
     meta: {
       title: "Logistics Suppliers",
+      seoTitle: "China to Philippines Logistics Suppliers | YiwuHub",
       description: "Connect with logistics suppliers for China to Philippines shipping, freight support, and door-to-door delivery.",
+      seoKeywords: "China to Philippines shipping, logistics suppliers, freight forwarding, door to door delivery",
       layout: {
         navBar: {
           showNavBar: true,
@@ -209,7 +218,9 @@ export const routes: RouteRecordRaw[] = [
     name: "ProcurementSupport",
     meta: {
       title: "Procurement Support",
+      seoTitle: "China Procurement Support for Philippines Buyers | YiwuHub",
       description: "Contact YiwuHub procurement support for China sourcing, supplier help, product quotations, and buying assistance.",
+      seoKeywords: "China procurement support, sourcing assistance, supplier help, product quotation",
       layout: {
         navBar: {
           showNavBar: true,
@@ -224,7 +235,9 @@ export const routes: RouteRecordRaw[] = [
     name: "AboutPolicies",
     meta: {
       title: "About & Policies",
+      seoTitle: "About YiwuHub & China Sourcing Policies | YiwuHub",
       description: "Learn about YiwuHub, China sourcing policies, buyer support, platform rules, and wholesale procurement guidance.",
+      seoKeywords: "YiwuHub, China sourcing policies, wholesale procurement, buyer support",
       layout: {
         navBar: {
           showNavBar: true,

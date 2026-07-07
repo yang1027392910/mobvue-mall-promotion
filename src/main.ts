@@ -5,6 +5,7 @@ import { pinia } from "@/pinia"
 import { router } from "@/router"
 import { installPlugins } from "@/plugins"
 import { preventDoubleTapZoom } from "@@/utils/prevent-double-tap-zoom"
+import { createHead } from "@vueuse/head"
 import App from "@/App.vue"
 import { Toast } from "vant"
 // vant
@@ -18,6 +19,7 @@ import "virtual:uno.css"
 
 // 创建应用实例
 const app = createApp(App)
+const head = createHead()
 
 preventDoubleTapZoom()
 
@@ -25,7 +27,7 @@ preventDoubleTapZoom()
 installPlugins(app)
 
 // 安装 pinia 和 router
-app.use(pinia).use(router).use(Toast)
+app.use(pinia).use(router).use(Toast).use(head)
 
 // router 准备就绪后挂载应用
 router.isReady().then(() => {

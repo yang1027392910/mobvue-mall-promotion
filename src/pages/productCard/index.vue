@@ -6,8 +6,9 @@ import VerifiedAccessDialog from "@@/components/VerifiedAccessDialog.vue"
 import { requireLogin } from "@@/utils/guest-access"
 import { Icon } from "@iconify/vue"
 import { showFailToast, showSuccessToast } from "vant"
-import { computed, nextTick, ref } from "vue"
+import { computed, nextTick, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import { useSeo } from "@/composables/useSeo"
 import { useUserStore } from "@/pinia/stores/user"
 
 interface SupplierContact {
@@ -20,7 +21,13 @@ interface SupplierContact {
 interface ProductDetail {
   id: number
   name: string
+  title: string
   subtitle: string
+  cover: string
+  seoTitle: string
+  metaDescription: string
+  seoKeywords: string[]
+  urlSlug: string
   image: string
   images: string[]
   imageCount: string
@@ -41,9 +48,19 @@ interface ProductDetail {
   params: Array<{ icon: string, label: string, value: string }>
 }
 
+interface ProductSeoPayload {
+  title?: string
+  cover?: string
+  seoTitle?: string
+  metaDescription?: string
+  seoKeywords?: string[]
+  urlSlug?: string
+}
+
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const { setProductSeo } = useSeo()
 
 const isFavorite = ref(false)
 const loading = ref(false)
@@ -53,6 +70,7 @@ const product = ref<ProductDetail | null>(null)
 const activeImageIndex = ref(0)
 const supplierContactSection = ref<HTMLElement | null>(null)
 const showVerificationDialog = ref(false)
+const productDetailRequestId = ref(0)
 
 const productId = computed(() => Number(route.query.id || 0))
 const verificationStatus = computed(() => Number(userStore.userInfo.verificationStatus ?? -1))
@@ -73,6 +91,10 @@ const supplierActionText = computed(() => {
 const activeImageNumber = computed(() => product.value?.images.length ? activeImageIndex.value + 1 : 0)
 const totalImageNumber = computed(() => product.value?.images.length || 1)
 const productDescriptionHtml = computed(() => sanitizeRichText(product.value?.description ?? ""))
+
+function isCurrentProductRoute(id: number) {
+  return route.name === "ProductCard" && Number(route.query.id || 0) === id
+}
 
 function toNumber(value: number | string | undefined, fallback = 0) {
   const numberValue = Number(value)
@@ -174,6 +196,38 @@ function getAiContentText(data: unknown) {
   return typeof content === "string" ? content : ""
 }
 
+function getStringField(data: Record<string, unknown>, key: string) {
+  const value = data[key]
+  return typeof value === "string" ? value : ""
+}
+
+function getSeoKeywords(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.map(keyword => String(keyword).trim()).filter(Boolean)
+  }
+
+  if (typeof value === "string") {
+    return value.split(",").map(keyword => keyword.trim()).filter(Boolean)
+  }
+
+  return []
+}
+
+function getAiContentSeo(data: unknown): ProductSeoPayload {
+  if (!data || typeof data !== "object") return {}
+
+  const contentData = data as Record<string, unknown>
+
+  return {
+    title: getStringField(contentData, "title"),
+    cover: getStringField(contentData, "cover"),
+    seoTitle: getStringField(contentData, "seoTitle"),
+    metaDescription: getStringField(contentData, "metaDescription"),
+    seoKeywords: getSeoKeywords(contentData.seoKeywords),
+    urlSlug: getStringField(contentData, "urlSlug")
+  }
+}
+
 function normalizeProduct(item: RawProductItem): ProductDetail {
   const images = parseImages(item.images)
   const cover = item.cover ?? item.image ?? item.imageUrl
@@ -199,12 +253,18 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
   return {
     id: toNumber(item.id ?? item.productId),
     name: String(item.name ?? item.productName ?? item.title ?? ""),
+    title: String(item.title ?? item.name ?? item.productName ?? ""),
     subtitle: String(item.subtitle ?? ""),
+    cover: getAssetUrl(String(item.cover ?? item.image ?? item.imageUrl ?? "")),
+    seoTitle: String(item.seoTitle ?? ""),
+    metaDescription: String(item.metaDescription ?? ""),
+    seoKeywords: Array.isArray(item.seoKeywords) ? item.seoKeywords.map(keyword => String(keyword)) : [],
+    urlSlug: String(item.urlSlug ?? ""),
     image: imageUrls[0] || "",
     images: imageUrls,
     imageCount: `${imageUrls.length ? 1 : 0}/${imageUrls.length || 1}`,
     sales: toNumber(item.sales ?? item.salesVolume),
-    description: String(item.description ?? item.subtitle ?? ""),
+    description: String(item.descriptionHtml ?? item.description ?? item.subtitle ?? ""),
     chinaCost: formatPeso(item.chinaPrice),
     phPrice: formatPeso(item.phPrice ?? item.price),
     profit: formatPeso(item.profit),
@@ -226,34 +286,55 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
 }
 
 async function getProductDetail() {
+  const nextProductId = productId.value
+  const requestId = productDetailRequestId.value + 1
+  productDetailRequestId.value = requestId
   loading.value = true
   errorText.value = ""
 
   try {
-    if (!productId.value) {
+    if (!nextProductId) {
       throw new Error("Invalid product id")
     }
 
-    const { data } = await getProductDetailApi(productId.value)
+    const { data } = await getProductDetailApi(nextProductId)
+    if (requestId !== productDetailRequestId.value || !isCurrentProductRoute(nextProductId)) return
+
     const normalizedProduct = normalizeProduct(data)
     product.value = normalizedProduct
+    setProductSeo(normalizedProduct)
     activeImageIndex.value = 0
     isFavorite.value = normalizedProduct.isFavorite
     void getProductAiContent(normalizedProduct.id)
   } catch (error) {
+    if (requestId !== productDetailRequestId.value || !isCurrentProductRoute(nextProductId)) return
     errorText.value = error instanceof Error ? error.message : "Failed to load product"
   } finally {
-    loading.value = false
+    if (requestId === productDetailRequestId.value && isCurrentProductRoute(nextProductId)) {
+      loading.value = false
+    }
   }
 }
 
 async function getProductAiContent(id: number) {
   try {
-    const { data } = await getProductAiContentApi(id)
-    const aiContent = getAiContentText(data).trim()
+    if (!isCurrentProductRoute(id)) return
 
-    if (product.value && product.value.id === id && aiContent) {
-      product.value.description = aiContent
+    const { data } = await getProductAiContentApi(id)
+    if (!isCurrentProductRoute(id)) return
+
+    const aiContent = getAiContentText(data).trim()
+    const aiContentSeo = getAiContentSeo(data)
+
+    if (product.value && product.value.id === id) {
+      const nextProduct = {
+        ...product.value,
+        ...aiContentSeo,
+        description: aiContent || product.value.description
+      }
+
+      product.value = nextProduct
+      setProductSeo(nextProduct)
     }
   } catch {
     // AI content is supplemental; keep the normal product detail visible if it fails.
@@ -373,8 +454,10 @@ async function copySupplierContact(label: string, value: string) {
   }
 }
 
-onMounted(() => {
+watch(productId, () => {
   getProductDetail()
+}, {
+  immediate: true
 })
 </script>
 

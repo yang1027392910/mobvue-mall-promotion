@@ -18,12 +18,18 @@ export interface RawProductItem {
   name?: string
   productName?: string
   title?: string
+  seoTitle?: string
+  metaDescription?: string
+  seoKeywords?: string[]
+  urlSlug?: string
   image?: string
   imageUrl?: string
   cover?: string
   images?: string | string[]
   subtitle?: string
   description?: string
+  descriptionHtml?: string
+  faqHtml?: string
   chinaCost?: number | string
   chinaPrice?: number | string
   shippingFee?: number | string
@@ -83,6 +89,14 @@ export interface ProductAiContentData {
   aiContent?: string
   description?: string
   productDescription?: string
+  title?: string
+  cover?: string
+  seoTitle?: string
+  metaDescription?: string
+  seoKeywords?: string[]
+  urlSlug?: string
+  descriptionHtml?: string
+  faqHtml?: string
 }
 
 export type ProductAiContentResponseData = ApiResponseData<string | ProductAiContentData | null>
