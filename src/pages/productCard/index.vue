@@ -8,6 +8,7 @@ import { Icon } from "@iconify/vue"
 import { showFailToast, showSuccessToast } from "vant"
 import { computed, nextTick, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
+import ProductImagePreview from "@/components/ProductImagePreview/index.vue"
 import { useSeo } from "@/composables/useSeo"
 import { useUserStore } from "@/pinia/stores/user"
 
@@ -68,6 +69,9 @@ const favoriteLoading = ref(false)
 const errorText = ref("")
 const product = ref<ProductDetail | null>(null)
 const activeImageIndex = ref(0)
+const previewVisible = ref(false)
+const previewImages = ref<string[]>([])
+const previewStartIndex = ref(0)
 const supplierContactSection = ref<HTMLElement | null>(null)
 const showVerificationDialog = ref(false)
 const productDetailRequestId = ref(0)
@@ -424,6 +428,38 @@ function handleImageChange(index: number) {
   activeImageIndex.value = index
 }
 
+function openImagePreview(images: string[], index = 0) {
+  const nextImages = images.filter(Boolean)
+  if (!nextImages.length) return
+
+  previewImages.value = nextImages
+  previewStartIndex.value = Math.min(Math.max(index, 0), nextImages.length - 1)
+  previewVisible.value = true
+}
+
+function previewProductImage(index = activeImageIndex.value) {
+  if (!product.value?.images.length) return
+
+  openImagePreview(product.value.images, index)
+}
+
+function handleDescriptionImageClick(event: MouseEvent) {
+  const container = event.currentTarget as HTMLElement | null
+  const target = event.target as HTMLElement | null
+  const imageElement = target?.closest<HTMLImageElement>("img")
+
+  if (!container || !imageElement || !container.contains(imageElement)) return
+
+  const imageElements = Array.from(container.querySelectorAll<HTMLImageElement>("img"))
+  const images = imageElements
+    .map(image => image.currentSrc || image.src || image.getAttribute("src") || "")
+    .filter(Boolean)
+  const currentImage = imageElement.currentSrc || imageElement.src || imageElement.getAttribute("src") || ""
+  const startIndex = Math.max(0, images.findIndex(image => image === currentImage))
+
+  openImagePreview(images, startIndex)
+}
+
 async function copySupplierContact(label: string, value: string) {
   const contact = value.trim()
 
@@ -497,7 +533,13 @@ watch(productId, () => {
               v-for="(image, index) in product.images"
               :key="`${image}-${index}`"
             >
-              <img class="product-image" :src="image" :alt="product.name" draggable="false">
+              <img
+                class="product-image"
+                :src="image"
+                :alt="product.name"
+                draggable="false"
+                @click="previewProductImage(index)"
+              >
             </van-swipe-item>
           </van-swipe>
           <div v-else class="product-image-placeholder" />
@@ -574,7 +616,11 @@ watch(productId, () => {
         </section>
 
         <section v-if="productDescriptionHtml.trim()" class="description-card">
-          <div class="product-description" v-html="productDescriptionHtml" />
+          <div
+            class="product-description"
+            v-html="productDescriptionHtml"
+            @click="handleDescriptionImageClick"
+          />
         </section>
 
         <section
@@ -684,6 +730,12 @@ watch(productId, () => {
       :status="verificationStatus"
       @confirm="handleVerificationConfirm"
     />
+
+    <ProductImagePreview
+      v-model:show="previewVisible"
+      :images="previewImages"
+      :start-index="previewStartIndex"
+    />
   </div>
 </template>
 
@@ -768,6 +820,10 @@ watch(productId, () => {
   object-fit: cover;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.product-image {
+  cursor: zoom-in;
 }
 
 .product-image-placeholder {
@@ -907,6 +963,10 @@ watch(productId, () => {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
+}
+
+.product-description :deep(img) {
+  cursor: zoom-in;
 }
 
 .product-description :deep(table) {
@@ -1150,4 +1210,5 @@ watch(productId, () => {
   background: transparent;
   font-size: 18px;
 }
+
 </style>
