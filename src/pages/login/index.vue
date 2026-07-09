@@ -594,7 +594,7 @@ onBeforeUnmount(() => {
 }
 
 .login-field {
-  height: 40px;
+  height: 35px;
   padding: 0 10px 0 13px;
   border: 1px solid #d8e6f7;
   border-radius: 16px;
