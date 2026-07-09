@@ -16,6 +16,7 @@ const title = computed(() => {
 const showLeftArrow = computed(() => route.meta.layout?.navBar?.showLeftArrow)
 const showRightShare = computed(() => route.meta.layout?.navBar?.showRightShare)
 const showRightCustom = computed(() => route.meta.layout?.navBar?.showRightCustom)
+const showRightSearch = computed(() => route.meta.layout?.navBar?.showRightSearch)
 function onClickLeft() {
   if (window.history.state?.back)
     history.back()
@@ -27,6 +28,9 @@ function handleShare() {
 }
 function handleCustom() {
   router.push("/procurement-support")
+}
+function handleSearch() {
+  router.push("/search")
 }
 </script>
 
@@ -41,11 +45,14 @@ function handleCustom() {
     @click-left="onClickLeft"
   >
     <template #right>
+      <button v-if="showRightSearch" class="share-icon" type="button" aria-label="Search" @click="handleSearch">
+        <Icon icon="solar:magnifer-linear" />
+      </button>
       <button v-if="showRightShare" class="share-icon" type="button" aria-label="Share supplier" @click="handleShare">
         <Icon icon="solar:share-bold" />
       </button>
       <button v-if="showRightCustom" class="share-icon" type="button" aria-label="Share supplier" @click="handleCustom">
-        <Icon icon="mdi:customer-service" />
+        <Icon icon="basil:search-solid" />
       </button>
     </template>
   </van-nav-bar>
@@ -59,7 +66,7 @@ function handleCustom() {
   display: grid;
   place-items: center;
   padding: 0;
-  color: #07152f;
+  color: #1677ff;
   background: transparent;
   font-size: 22px;
 }

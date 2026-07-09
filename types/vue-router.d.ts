@@ -40,6 +40,7 @@ declare module "vue-router" {
         showLeftArrow?: boolean
         showRightShare?: boolean
         showRightCustom?: boolean
+        showRightSearch?: boolean
       }
       tabbar?: {
         /**

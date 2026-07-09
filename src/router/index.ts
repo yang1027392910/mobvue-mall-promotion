@@ -75,7 +75,8 @@ export const routes: RouteRecordRaw[] = [
       layout: {
         navBar: {
           showNavBar: true,
-          showLeftArrow: true
+          showLeftArrow: true,
+          showRightSearch: true
         },
         tabbar: {
           showTabbar: true,
@@ -95,7 +96,8 @@ export const routes: RouteRecordRaw[] = [
       layout: {
         navBar: {
           showNavBar: true,
-          showLeftArrow: true
+          showLeftArrow: true,
+          showRightSearch: true
         }
       }
     }
@@ -127,7 +129,8 @@ export const routes: RouteRecordRaw[] = [
       layout: {
         navBar: {
           showNavBar: true,
-          showLeftArrow: true
+          showLeftArrow: true,
+          showRightSearch: true
         }
       }
     }
@@ -158,7 +161,8 @@ export const routes: RouteRecordRaw[] = [
         navBar: {
           showNavBar: true,
           showLeftArrow: true,
-          showRightCustom: true
+          showRightCustom: true,
+          showRightSearch: true
         }
       }
     }
