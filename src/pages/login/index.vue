@@ -2,8 +2,8 @@
 import type { RawBannerItem } from "@@/apis/banner/type"
 import type { AxiosError } from "axios"
 import { getBannerListApi } from "@@/apis/banner"
+import { markNewUserWelcome } from "@@/utils/new-user-welcome"
 import { Icon } from "@iconify/vue"
-import VerifiedAccessDialog from "@@/components/VerifiedAccessDialog.vue"
 import { allowMultipleToast, showFailToast, showLoadingToast, showSuccessToast } from "vant"
 import goodsIcon from "@/assets/login/goods.png"
 import safeIcon from "@/assets/login/safe.png"
@@ -23,9 +23,6 @@ const sendingCode = ref(false)
 const countdown = ref(0)
 const emailError = ref("")
 const loginBannerImage = ref("")
-const showNewUserVerificationDialog = ref(false)
-const pendingLoginRedirect = ref("")
-const isVerificationRouting = ref(false)
 let countdownTimer: ReturnType<typeof setInterval> | undefined
 
 const loginFormData = reactive({
@@ -42,10 +39,6 @@ const sendCodeText = computed(() => {
   return "Send Code"
 })
 
-const loginRedirect = computed(() => {
-  const redirect = String(route.query.redirect || "")
-  return redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/"
-})
 const inviteCode = computed(() => String(route.query.invite || "").trim())
 
 interface LoginErrorResponse {
@@ -169,13 +162,9 @@ function onSubmit() {
   }).then(({ data }) => {
     loadingToast.close()
     userStore.setToken(data.token, data.user)
-    if (isNewUser(data)) {
-      pendingLoginRedirect.value = loginRedirect.value
-      isVerificationRouting.value = false
-      showNewUserVerificationDialog.value = true
-      return
-    }
-    router.push(loginRedirect.value)
+    if (isNewUser(data)) markNewUserWelcome()
+    window.scrollTo(0, 0)
+    router.push("/")
   }).catch((error) => {
     loadingToast.close()
     loginFormData.code = ""
@@ -257,18 +246,6 @@ function handleBackHome() {
 
 function handleCustomerService() {
   router.push("/procurement-support")
-}
-
-function handleNewUserDialogVisible(value: boolean) {
-  showNewUserVerificationDialog.value = value
-  if (!value && !isVerificationRouting.value) {
-    router.push(pendingLoginRedirect.value || loginRedirect.value)
-  }
-}
-
-function handleNewUserVerificationConfirm() {
-  isVerificationRouting.value = true
-  router.push("/user-verification")
 }
 
 onMounted(() => {
@@ -411,13 +388,6 @@ onBeforeUnmount(() => {
       </footer>
     </div>
   </div>
-
-  <VerifiedAccessDialog
-    :show="showNewUserVerificationDialog"
-    show-welcome-title
-    @update:show="handleNewUserDialogVisible"
-    @confirm="handleNewUserVerificationConfirm"
-  />
 </template>
 
 <style scoped>
@@ -676,7 +646,7 @@ onBeforeUnmount(() => {
 
 .login-field :deep(.van-field__control) {
   color: #0f172a;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 20px;
 }
 

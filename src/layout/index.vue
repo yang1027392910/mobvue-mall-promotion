@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useKeepAliveStore } from "@/pinia/stores/keep-alive"
 import { installSeoHead } from "@/composables/useSeo"
+import { useKeepAliveStore } from "@/pinia/stores/keep-alive"
 import Footer from "./components/Footer.vue"
 import NavBar from "./components/NavBar.vue"
 import Tabbar from "./components/Tabbar.vue"
@@ -19,8 +19,16 @@ const showTabbar = computed(() => route.meta.layout?.tabbar?.showTabbar)
 
 const showFooter = computed(() => route.meta.layout?.footer === true)
 
+let viewportResetTimer: number | undefined
+
 function isDesktopViewport() {
   return window.matchMedia("(min-width: 768px)").matches
+}
+
+function resetDocumentViewport() {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+  document.documentElement.scrollTop = 0
+  document.body.scrollTop = 0
 }
 
 function handleWindowWheel(event: WheelEvent) {
@@ -40,9 +48,23 @@ function handleWindowWheel(event: WheelEvent) {
 watch(
   () => route.fullPath,
   async () => {
+    // iOS Safari may keep the visual viewport offset used to reveal a focused
+    // login input while the keyboard is closing. Blur before changing pages so
+    // that offset cannot be carried into the home layout.
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+
+    window.clearTimeout(viewportResetTimer)
+    resetDocumentViewport()
     await nextTick()
     pageScroller.value?.scrollTo({ top: 0, left: 0 })
-    window.scrollTo({ top: 0, left: 0 })
+    requestAnimationFrame(() => {
+      resetDocumentViewport()
+    })
+    // The iOS keyboard dismissal animation finishes after the route has
+    // rendered, so perform one final root-viewport reset after that animation.
+    viewportResetTimer = window.setTimeout(resetDocumentViewport, 350)
   }
 )
 
@@ -51,6 +73,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  window.clearTimeout(viewportResetTimer)
   window.removeEventListener("wheel", handleWindowWheel)
 })
 </script>
@@ -74,6 +97,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .app-layout {
   height: 100%;
+  height: 100dvh;
   min-height: 0;
   width: 100%;
   margin: 0 auto;
@@ -90,7 +114,9 @@ onBeforeUnmount(() => {
 @media (min-width: 768px) {
   .app-layout {
     height: 100vh;
+    height: 100dvh;
     max-height: 100vh;
+    max-height: 100dvh;
     max-width: 500px;
   }
 }

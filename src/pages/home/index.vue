@@ -7,9 +7,12 @@ import { getBannerListApi } from "@@/apis/banner"
 import { getHomeCategoryProductsApi } from "@@/apis/homeCategoryProducts"
 import { getHomeNavigationListApi } from "@@/apis/homeNavigation"
 import { getHotProductListApi } from "@@/apis/hotProduct"
+import VerifiedAccessDialog from "@@/components/VerifiedAccessDialog.vue"
 import { isLoggedIn } from "@@/utils/guest-access"
+import { consumeNewUserWelcome } from "@@/utils/new-user-welcome"
+import { restorePageScroll } from "@@/utils/restore-page-scroll"
 import { Icon } from "@iconify/vue"
-import { onBeforeUnmount, onMounted, ref } from "vue"
+import { onActivated, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
 import homeBanner from "@/assets/home/banner-suppliers.png"
 import homeLogo from "@/assets/home/logo.png"
@@ -62,6 +65,7 @@ interface PointerPoint {
 const router = useRouter()
 const loading = ref(false)
 const errorText = ref("")
+const showNewUserVerificationDialog = ref(false)
 const products = ref<ProductItem[]>([])
 const categoryProductSections = ref<RawHomeCategoryProductsSection[]>([])
 const rankBadgeImages = [rankNo1, rankNo2, rankNo3]
@@ -116,6 +120,35 @@ const bannerDragThreshold = 8
 const bannerClickSuppressed = ref(false)
 let bannerPressStart: PointerPoint | null = null
 let bannerClickResetTimer: number | undefined
+let pageScrollRestoreTimer: number | undefined
+let welcomeDialogTimer: number | undefined
+
+function schedulePageScrollRestore() {
+  window.clearTimeout(pageScrollRestoreTimer)
+  pageScrollRestoreTimer = window.setTimeout(restorePageScroll, 300)
+}
+
+function showPendingNewUserWelcome() {
+  window.clearTimeout(welcomeDialogTimer)
+  welcomeDialogTimer = window.setTimeout(() => {
+    restorePageScroll()
+    if (consumeNewUserWelcome()) {
+      showNewUserVerificationDialog.value = true
+    }
+  }, 300)
+}
+
+function handleNewUserDialogVisible(value: boolean) {
+  showNewUserVerificationDialog.value = value
+  if (value) return
+
+  restorePageScroll()
+  window.setTimeout(restorePageScroll, 300)
+}
+
+function handleNewUserVerificationConfirm() {
+  router.push("/user-verification")
+}
 
 function toNumber(value: number | string | undefined, fallback = 0) {
   const numberValue = Number(value)
@@ -401,14 +434,20 @@ async function getHomeNavigationList() {
 }
 
 onMounted(() => {
+  schedulePageScrollRestore()
+  showPendingNewUserWelcome()
   getBannerList()
   getHotProductList()
   getHomeCategoryProducts()
   getHomeNavigationList()
 })
 
+onActivated(schedulePageScrollRestore)
+
 onBeforeUnmount(() => {
   window.clearTimeout(bannerClickResetTimer)
+  window.clearTimeout(pageScrollRestoreTimer)
+  window.clearTimeout(welcomeDialogTimer)
 })
 </script>
 
@@ -635,6 +674,13 @@ onBeforeUnmount(() => {
       </div>
     </section>
   </div>
+
+  <VerifiedAccessDialog
+    v-model:show="showNewUserVerificationDialog"
+    show-welcome-title
+    @update:show="handleNewUserDialogVisible"
+    @confirm="handleNewUserVerificationConfirm"
+  />
 </template>
 
 <style scoped>
