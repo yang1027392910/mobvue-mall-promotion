@@ -161,8 +161,7 @@ export const routes: RouteRecordRaw[] = [
         navBar: {
           showNavBar: true,
           showLeftArrow: true,
-          showRightCustom: true,
-          showRightSearch: true
+          showRightCustom: true
         }
       }
     }

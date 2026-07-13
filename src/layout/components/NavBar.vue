@@ -46,13 +46,13 @@ function handleSearch() {
   >
     <template #right>
       <button v-if="showRightSearch" class="share-icon" type="button" aria-label="Search" @click="handleSearch">
-        <Icon icon="solar:magnifer-linear" />
+        <Icon icon="basil:search-solid" />
       </button>
       <button v-if="showRightShare" class="share-icon" type="button" aria-label="Share supplier" @click="handleShare">
         <Icon icon="solar:share-bold" />
       </button>
       <button v-if="showRightCustom" class="share-icon" type="button" aria-label="Share supplier" @click="handleCustom">
-        <Icon icon="basil:search-solid" />
+        <Icon icon="mdi:customer-service" />
       </button>
     </template>
   </van-nav-bar>
