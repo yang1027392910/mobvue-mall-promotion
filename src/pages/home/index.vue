@@ -490,7 +490,7 @@ onBeforeUnmount(() => {
               Grow Your Business in<br>
               the Philippines
             </h2>
-            <button class="home-banner-calculator" type="button" @click.stop="handleProfitCalculator()">
+            <button class="home-banner-calculator" type="button">
               Free Calculator
               <Icon icon="solar:calculator-bold" />
             </button>
