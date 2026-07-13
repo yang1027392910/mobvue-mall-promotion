@@ -191,7 +191,7 @@ function openAppLink(appUrl: string, fallbackUrl?: string) {
 }
 
 function handleShare(channel = "Messenger") {
-  const text = `Join YiwuHub with my invite code ${inviteCode.value}: ${inviteLink.value}`
+  const text = `Join china2ph with my invite code ${inviteCode.value}: ${inviteLink.value}`
   const encodedText = encodeURIComponent(text)
   const encodedUrl = encodeURIComponent(inviteLink.value)
   const messengerAppId = import.meta.env.VITE_FACEBOOK_APP_ID

@@ -68,7 +68,7 @@ function handleContactClick(item: ContactLink, event: MouseEvent) {
 <template>
   <footer class="site-footer">
     <div class="footer-brand">
-      <img class="footer-logo" :src="logo" alt="YiwuHub">
+      <img class="footer-logo" :src="logo" alt="china2ph">
 
       <p class="brand-copy">
         Your trusted sourcing partner connecting Philippines businesses with quality Chinese factories.
@@ -115,7 +115,7 @@ function handleContactClick(item: ContactLink, event: MouseEvent) {
     </div>
 
     <div class="footer-bottom">
-      <p>&copy; 2026 YiwuHub. All rights reserved.</p>
+      <p>&copy; 2026 china2ph. All rights reserved.</p>
       <p>CHINA TO PHILIPPINES, <span>BUSINESS MADE SIMPLE.</span></p>
     </div>
   </footer>

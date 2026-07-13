@@ -70,7 +70,7 @@ const menuItems: MenuItem[] = [
   },
   {
     title: "About Us",
-    description: "Learn about YiwuHub and policies",
+    description: "Learn about china2ph and policies",
     icon: "info-o",
     path: "/about-policies#about-us"
   }
@@ -181,7 +181,7 @@ onMounted(() => {
           {{ loggedIn ? avatarInitial : "Y" }}
         </div>
         <div class="header-copy">
-          <h1>{{ loggedIn ? "Hello! 👋" : "Welcome to YiwuHub" }}</h1>
+          <h1>{{ loggedIn ? "Hello! 👋" : "Welcome to china2ph" }}</h1>
           <p v-if="loggedIn">
             {{ displayEmail }}
           </p>

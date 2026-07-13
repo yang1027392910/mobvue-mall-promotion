@@ -110,10 +110,10 @@ const homeNavigations = ref<HomeNavigationItem[]>([
 const banners = ref<BannerItem[]>([
   {
     id: "local-banner",
-    title: "YiwuHub banner",
+    title: "china2ph banner",
     image: homeBanner,
     jumpType: "link",
-    jumpValue: "/suppliers"
+    jumpValue: "/calculator?mode=weight&from=profile"
   }
 ])
 const bannerDragThreshold = 8
@@ -298,10 +298,10 @@ function handleNavigationClick(item: HomeNavigationItem) {
     return
   }
 
-  if (item.jumpValue.startsWith("/calculator")) {
-    handleProfitCalculator(item.jumpValue)
-    return
-  }
+  // if (item.jumpValue.startsWith("/calculator")) {
+  //   handleProfitCalculator(item.jumpValue)
+  //   return
+  // }
 
   if (item.jumpType === "link" || /^https?:\/\//.test(item.jumpValue)) {
     window.location.href = item.jumpValue
@@ -454,7 +454,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="page-home">
     <header class="home-header">
-      <img class="home-logo" :src="homeLogo" alt="YiwuHub">
+      <img class="home-logo" :src="homeLogo" alt="china2ph">
       <button class="service-button" type="button" aria-label="Contact customer service" @click="handleCustomerServiceClick">
         <Icon icon="mdi:customer-service" />
       </button>
@@ -490,20 +490,10 @@ onBeforeUnmount(() => {
               Grow Your Business in<br>
               the Philippines
             </h2>
-            <ul>
-              <li>
-                <Icon icon="solar:verified-check-bold" />
-                Verified Suppliers
-              </li>
-              <li>
-                <Icon icon="solar:calculator-bold" />
-                Profit Calculators
-              </li>
-              <li>
-                <Icon icon="solar:shield-check-bold" />
-                Fast &amp; Reliable
-              </li>
-            </ul>
+            <button class="home-banner-calculator" type="button" @click.stop="handleProfitCalculator()">
+              Free Calculator
+              <Icon icon="solar:calculator-bold" />
+            </button>
           </div>
         </van-swipe-item>
       </van-swipe>
@@ -641,7 +631,7 @@ onBeforeUnmount(() => {
     </section>
 
     <section class="why-choose">
-      <h2>Why Choose YiwuHub?</h2>
+      <h2>Why Choose china2ph?</h2>
       <div class="why-choose__grid">
         <div class="why-choose__item">
           <span class="why-choose__icon">
@@ -815,31 +805,32 @@ onBeforeUnmount(() => {
   line-height: 17px;
 }
 
-.home-banner-copy ul {
+.home-banner-calculator {
   display: flex;
-  margin: 0;
-  padding: 0;
-  flex-direction: column;
-  gap: 5px;
-  list-style: none;
-}
-
-.home-banner-copy li {
-  display: flex;
+  width: fit-content;
+  min-height: 28px;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  color: #172554;
-  font-size: 8px;
-  font-weight: 700;
+  padding: 3px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: #0756f3;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  pointer-events: auto;
 }
 
-.home-banner-copy li svg {
-  width: 12px;
-  height: 12px;
-  padding: 2px;
-  border-radius: 50%;
-  background: #e8f1ff;
-  color: #1267f6;
+.home-banner-calculator svg {
+  width: 15px;
+  height: 15px;
+}
+
+.home-banner-calculator:active {
+  transform: scale(0.96);
 }
 
 .platform-stats {

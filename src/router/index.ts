@@ -36,8 +36,8 @@ export const routes: RouteRecordRaw[] = [
     meta: {
       title: "Login",
       seoTitle: "Login",
-      description: "Sign in to your YiwuHub account to access verified China suppliers, manage favorites, calculate import profits, and connect with wholesale suppliers.",
-      seoKeywords: "YiwuHub login, sign in, China wholesale platform, verified China suppliers"
+      description: "Sign in to your china2ph account to access verified China suppliers, manage favorites, calculate import profits, and connect with wholesale suppliers.",
+      seoKeywords: "china2ph login, sign in, China wholesale platform, verified China suppliers"
     }
   },
   {
@@ -46,7 +46,7 @@ export const routes: RouteRecordRaw[] = [
     name: "Home",
     meta: {
       title: "Home",
-      seoTitle: "YiwuHub - Verified China Suppliers for Philippines Buyers",
+      seoTitle: "china2ph - Verified China Suppliers for Philippines Buyers",
       description: "Find verified China suppliers, compare factory prices, calculate product profits, and source wholesale goods from China for the Philippines.",
       seoKeywords: "China suppliers, Philippines wholesale, Yiwu suppliers, import from China",
       layout: {
@@ -69,7 +69,7 @@ export const routes: RouteRecordRaw[] = [
     name: "Categories",
     meta: {
       title: "Categories",
-      seoTitle: "China Wholesale Categories | YiwuHub",
+      seoTitle: "China Wholesale Categories | china2ph",
       description: "Browse through our extensive range of wholesale products from China, categorized for easy navigation and selection.",
       seoKeywords: "China wholesale categories, Philippines import, Yiwu products",
       layout: {
@@ -123,7 +123,7 @@ export const routes: RouteRecordRaw[] = [
     name: "HotProducts",
     meta: {
       title: "Hot Products",
-      seoTitle: "Hot Wholesale Products from China | YiwuHub",
+      seoTitle: "Hot Wholesale Products from China | china2ph",
       description: "Discover trending wholesale products from verified China suppliers. Compare factory prices, Philippine selling prices, and estimated profit opportunities.",
       seoKeywords: "hot wholesale products, trending China products, China suppliers, factory direct, Philippines wholesale, profitable products",
       layout: {
@@ -173,7 +173,7 @@ export const routes: RouteRecordRaw[] = [
     name: "Suppliers",
     meta: {
       title: "Suppliers",
-      seoTitle: "Verified China Suppliers for Philippines Buyers | YiwuHub",
+      seoTitle: "Verified China Suppliers for Philippines Buyers | china2ph",
       description: "Find verified China suppliers and factory-direct sourcing partners for Philippines wholesale buyers.",
       seoKeywords: "verified China suppliers, factory direct suppliers, Philippines wholesale suppliers, Yiwu sourcing",
       layout: {
@@ -205,7 +205,7 @@ export const routes: RouteRecordRaw[] = [
     name: "LogisticsSuppliers",
     meta: {
       title: "Logistics Suppliers",
-      seoTitle: "China to Philippines Logistics Suppliers | YiwuHub",
+      seoTitle: "China to Philippines Logistics Suppliers | china2ph",
       description: "Connect with logistics suppliers for China to Philippines shipping, freight support, and door-to-door delivery.",
       seoKeywords: "China to Philippines shipping, logistics suppliers, freight forwarding, door to door delivery",
       layout: {
@@ -222,8 +222,8 @@ export const routes: RouteRecordRaw[] = [
     name: "ProcurementSupport",
     meta: {
       title: "Procurement Support",
-      seoTitle: "China Procurement Support for Philippines Buyers | YiwuHub",
-      description: "Contact YiwuHub procurement support for China sourcing, supplier help, product quotations, and buying assistance.",
+      seoTitle: "China Procurement Support for Philippines Buyers | china2ph",
+      description: "Contact china2ph procurement support for China sourcing, supplier help, product quotations, and buying assistance.",
       seoKeywords: "China procurement support, sourcing assistance, supplier help, product quotation",
       layout: {
         navBar: {
@@ -239,9 +239,9 @@ export const routes: RouteRecordRaw[] = [
     name: "AboutPolicies",
     meta: {
       title: "About & Policies",
-      seoTitle: "About YiwuHub & China Sourcing Policies | YiwuHub",
-      description: "Learn about YiwuHub, China sourcing policies, buyer support, platform rules, and wholesale procurement guidance.",
-      seoKeywords: "YiwuHub, China sourcing policies, wholesale procurement, buyer support",
+      seoTitle: "About china2ph & China Sourcing Policies | china2ph",
+      description: "Learn about china2ph, China sourcing policies, buyer support, platform rules, and wholesale procurement guidance.",
+      seoKeywords: "china2ph, China sourcing policies, wholesale procurement, buyer support",
       layout: {
         navBar: {
           showNavBar: true,

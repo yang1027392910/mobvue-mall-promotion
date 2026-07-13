@@ -8,7 +8,7 @@ const dynamicTitle = ref<string>("")
 function setTitle(title?: unknown) {
   const pageTitle = String(title || "").trim()
   dynamicTitle.value = pageTitle
-    ? pageTitle.includes("YiwuHub") ? pageTitle : `${pageTitle} | YiwuHub`
+    ? pageTitle.includes("china2ph") ? pageTitle : `${pageTitle} | china2ph`
     : VITE_APP_TITLE
 }
 

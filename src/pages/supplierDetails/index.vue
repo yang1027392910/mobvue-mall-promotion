@@ -32,7 +32,7 @@ const supplierName = computed(() => supplier.value?.name || "Supplier Details")
 const supplierCity = computed(() => supplier.value?.city ? `${supplier.value.city}, China` : "China")
 const supplierProducts = computed(() => supplier.value?.mainProducts ?? supplier.value?.main_products ?? "")
 const supplierMoq = computed(() => supplier.value?.moq || "-")
-const supplierDescription = computed(() => supplier.value?.description || "This verified supplier has been reviewed by YiwuHub. Product details and contact availability may vary based on account verification status.")
+const supplierDescription = computed(() => supplier.value?.description || "This verified supplier has been reviewed by china2ph. Product details and contact availability may vary based on account verification status.")
 const supplierLogo = computed(() => getAssetUrl(supplier.value?.logo))
 const supplierWhatsapp = computed(() => supplier.value?.contactWhatsapp ?? supplier.value?.contact_whatsapp ?? "")
 const canShowContact = computed(() => Number(supplier.value?.showContact ?? supplier.value?.show_contact ?? 0) === 1 && Boolean(supplierWhatsapp.value))
@@ -82,7 +82,7 @@ const stats = computed<StatItem[]>(() => [
     icon: "solar:calendar-bold-duotone",
     iconClass: "orange",
     label: "Verification",
-    value: "YiwuHub"
+    value: "china2ph"
   }
 ])
 

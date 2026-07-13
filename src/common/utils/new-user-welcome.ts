@@ -1,4 +1,4 @@
-const NEW_USER_WELCOME_KEY = "yiwuhub_show_new_user_welcome"
+const NEW_USER_WELCOME_KEY = "china2ph_show_new_user_welcome"
 
 export function markNewUserWelcome() {
   window.sessionStorage.setItem(NEW_USER_WELCOME_KEY, "1")

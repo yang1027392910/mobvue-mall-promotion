@@ -39,7 +39,7 @@ const bannerImage = computed(() => {
 const defaultContactMethods: ContactMethod[] = [
   {
     platform: "Messenger",
-    contact: "m.me/YiwuHub",
+    contact: "m.me/china2ph",
     description: "Most popular messaging app in the Philippines",
     color: "#0B6BFF",
     bg: "#F2F7FF",
@@ -59,7 +59,7 @@ const defaultContactMethods: ContactMethod[] = [
   },
   {
     platform: "Telegram",
-    contact: "@YiwuHubSupport",
+    contact: "@china2phSupport",
     description: "Fast quotations · 24/7 online",
     color: "#20A8E8",
     bg: "#F2FAFF",

@@ -1,7 +1,7 @@
 import { useHead } from "@vueuse/head"
 import { computed, ref } from "vue"
 
-const SITE_URL = "https://yiwuhub.com"
+const SITE_URL = "https://china2ph.com"
 const PRODUCT_PATH = "/product"
 const PRODUCT_LIST_PATH = "/product-list"
 const SEARCH_PATH = "/search"
@@ -239,7 +239,7 @@ export function useSeo() {
 
     if (!keyword) {
       setPageSeo({
-        title: "Search China Wholesale Products | YiwuHub",
+        title: "Search China Wholesale Products | china2ph",
         description: "Search wholesale products from verified China suppliers for Philippines buyers.",
         seoKeywords: "China products, wholesale search, Yiwu suppliers, Philippines sourcing",
         url: `${SITE_URL}${SEARCH_PATH}`
@@ -248,7 +248,7 @@ export function useSeo() {
     }
 
     setPageSeo({
-      title: `Search "${keyword}" | YiwuHub`,
+      title: `Search "${keyword}" | china2ph`,
       description: `Find ${keyword} from verified China suppliers. Compare factory prices and source wholesale products for the Philippines.`,
       keywords: `${keyword}, wholesale ${keyword}, China supplier, Philippines import`,
       url: `${SITE_URL}${SEARCH_PATH}?keyword=${encodeURIComponent(keyword)}`
@@ -259,7 +259,7 @@ export function useSeo() {
     const name = getTrimmedValue(categoryName) || "China Wholesale Products"
 
     setPageSeo({
-      title: `${name} Wholesale Products | YiwuHub`,
+      title: `${name} Wholesale Products | china2ph`,
       description: `Find ${name} wholesale products from verified China suppliers. Compare factory prices, Philippine selling prices, and estimated profit opportunities.`,
       keywords: `${name} wholesale, ${name} China suppliers, Philippines import, China wholesale products`,
       url: `${SITE_URL}${PRODUCT_LIST_PATH}`
