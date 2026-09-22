@@ -2,6 +2,7 @@
 import { isLoggedIn } from "@@/utils/guest-access"
 import { Icon } from "@iconify/vue"
 import { useRouter } from "vue-router"
+import { useCouponsStore } from "@/pinia/stores/coupons"
 import { useUserStore } from "@/pinia/stores/user"
 
 interface QuickEntry {
@@ -35,11 +36,18 @@ const quickEntries: QuickEntry[] = [
     path: "/suppliers"
   },
   {
-    title: "Profit Calculator",
-    description: "Estimate product profit",
-    icon: "solar:calculator-bold",
+    title: "My Cart",
+    description: "View and manage your cart",
+    icon: "shopping-cart-o",
     color: "quick-cyan",
-    path: "/calculator?mode=weight&from=profile"
+    path: "/cart"
+  },
+  {
+    title: "Rewards",
+    description: "Claim shopping benefits",
+    icon: "gift-o",
+    color: "quick-green",
+    path: "/rewards"
   }
   // {
   //   title: "My Inquiries",
@@ -51,16 +59,22 @@ const quickEntries: QuickEntry[] = [
 
 const menuItems: MenuItem[] = [
   {
+    title: "My Orders",
+    description: "View your orders and order status",
+    icon: "orders-o",
+    path: "/orders"
+  },
+  {
+    title: "My Coupons",
+    description: "View available shopping coupons",
+    icon: "coupon-o",
+    path: "/coupons"
+  },
+  {
     title: "My Favorites",
     description: "View and manage your saved products",
     icon: "star-o",
     path: "/favorites"
-  },
-  {
-    title: "logistics Support",
-    description: "We're here to help you",
-    icon: "logistics",
-    path: "/logistics-suppliers"
   },
   {
     title: "Help Center",
@@ -78,8 +92,10 @@ const menuItems: MenuItem[] = [
 
 const router = useRouter()
 const userStore = useUserStore()
-const guestAccessiblePaths = ["/hot-products", "/procurement-support", "/about-policies", "/suppliers", "/logistics-suppliers"]
+const couponsStore = useCouponsStore()
+const guestAccessiblePaths = ["/cart", "/hot-products", "/procurement-support", "/about-policies", "/suppliers", "/logistics-suppliers"]
 const loggedIn = computed(() => isLoggedIn())
+const couponCount = computed(() => couponsStore.availableCount)
 const userEmail = computed(() => userStore.email || (userStore.username.includes("@") ? userStore.username : ""))
 const displayEmail = computed(() => maskEmail(userEmail.value))
 const avatarInitial = computed(() => getEmailInitial(userEmail.value))
@@ -162,6 +178,7 @@ function handleVerificationNavigate() {
 onMounted(() => {
   if (loggedIn.value) {
     userStore.getInfo()
+    couponsStore.fetchRewards()
   }
 })
 </script>
@@ -181,7 +198,7 @@ onMounted(() => {
           {{ loggedIn ? avatarInitial : "Y" }}
         </div>
         <div class="header-copy">
-          <h1>{{ loggedIn ? "Hello! 👋" : "Welcome to china2ph" }}</h1>
+          <h1>{{ loggedIn ? "Hello! 棣冩啟" : "Welcome to china2ph" }}</h1>
           <p v-if="loggedIn">
             {{ displayEmail }}
           </p>
@@ -191,6 +208,21 @@ onMounted(() => {
     </header>
 
     <main class="profile-container profile-content">
+      <section class="account-stats">
+        <button type="button" @click="handleNavigate('/coupons')">
+          <strong>{{ couponCount }}</strong>
+          <span>My Coupons</span>
+        </button>
+        <button type="button" @click="handleNavigate('/orders')">
+          <strong>0</strong>
+          <span>My Orders</span>
+        </button>
+        <button type="button" @click="handleNavigate('/favorites')">
+          <strong>0</strong>
+          <span>My Favorites</span>
+        </button>
+      </section>
+
       <section class="quick-card">
         <div
           v-for="item in quickEntries"
@@ -272,131 +304,210 @@ onMounted(() => {
 <style scoped>
 .profile-page {
   width: 100%;
+
   max-width: 500px;
+
   min-height: 100%;
+
   margin: 0 auto;
+
   padding-bottom: 96px;
+
   color: #111827;
+
   background: linear-gradient(180deg, #f6f9ff 0%, #f8fafc 100%);
 }
 
 .profile-guest {
   min-height: calc(100vh - 90px);
+
   padding: 32px 18px;
+
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
+
   justify-content: center;
+
   gap: 14px;
+
   text-align: center;
 }
 
 .profile-guest-icon {
   width: 60px;
+
   height: 60px;
+
   border-radius: 20px;
+
   display: grid;
+
   place-items: center;
+
   color: #1677ff;
+
   font-size: 32px;
+
   line-height: 1;
+
   background: #eef6ff;
 }
 
 .profile-guest-title {
   color: #111827;
+
   font-size: 16px;
+
   font-weight: 700;
+
   line-height: 22px;
 }
 
 .profile-guest-button {
   min-width: 120px;
+
   height: 42px;
+
   font-size: 14px;
+
   font-weight: 700;
+
   line-height: 20px;
 }
 
 .profile-header {
   position: relative;
+
   height: 210px;
+
   padding: 28px 20px;
+
   overflow: hidden;
+
   border-bottom-left-radius: 28px;
+
   border-bottom-right-radius: 28px;
+
   color: #ffffff;
+
   background: linear-gradient(135deg, #1677ff 0%, #7c3aed 100%);
+
   box-shadow: 0 16px 32px rgba(37, 99, 255, 0.22);
 }
 
 .profile-header::before {
   position: absolute;
+
   inset: 0;
+
   background:
     linear-gradient(115deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 42%),
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 28px),
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 34px);
+
   content: "";
+
   opacity: 0.45;
 }
 
 .profile-header::after {
   position: absolute;
+
   right: -42px;
+
   bottom: 18px;
+
   width: 180px;
+
   height: 76px;
+
   border: 1px solid rgba(255, 255, 255, 0.18);
+
   border-radius: 50%;
+
   content: "";
+
   opacity: 0.42;
+
   transform: rotate(-14deg);
 }
 
 .header-toolbar {
   position: relative;
+
   z-index: 1;
+
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
 }
 
 .header-login-button {
   min-width: 72px;
+
   height: 34px;
+
   border: 1px solid rgba(255, 255, 255, 0.72);
+
   border-radius: 999px;
+
   padding: 0 18px;
+
   color: #ffffff;
+
   cursor: pointer;
+
   background: rgba(255, 255, 255, 0.14);
+
   font-size: 13px;
+
   font-weight: 700;
 }
 
 .settings-button {
   width: 36px;
+
   height: 36px;
+
   border: none;
+
   border-radius: 50%;
+
   display: grid;
+
   place-items: center;
+
   appearance: none;
+
   color: #ffffff;
+
   cursor: pointer;
+
   font-size: 21px;
+
   line-height: 1;
+
   background: rgba(255, 255, 255, 0.16);
+
   -webkit-tap-highlight-color: transparent;
 }
 
 .header-profile {
   margin-top: 15px;
+
   position: relative;
+
   z-index: 1;
+
   display: flex;
+
   align-items: center;
+
   gap: 15px;
 }
 
@@ -406,17 +517,29 @@ onMounted(() => {
 
 .avatar {
   width: 64px;
+
   height: 64px;
+
   border: 3px solid rgba(255, 255, 255, 0.52);
+
   border-radius: 50%;
+
   display: grid;
+
   place-items: center;
+
   flex: 0 0 auto;
+
   color: #1677ff;
+
   font-size: 26px;
+
   font-weight: 800;
+
   line-height: 1;
+
   background: #ffffff;
+
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
 }
 
@@ -426,75 +549,151 @@ onMounted(() => {
 
 .header-copy h1 {
   margin: 0;
+
   font-size: 20px;
+
   font-weight: 800;
+
   line-height: 26px;
 }
 
 .header-copy p {
   margin: 5px 0 0;
+
   color: rgba(255, 255, 255, 0.86);
+
   font-size: 12px;
+
   font-weight: 600;
+
   line-height: 17px;
 }
 
 .header-copy span {
   display: block;
+
   margin-top: 8px;
+
   color: rgba(255, 255, 255, 0.78);
+
   font-size: 12px;
+
   line-height: 17px;
 }
 
 .profile-container,
 .profile-content {
   position: relative;
+
   z-index: 2;
 }
 
-.quick-card {
-  margin: -48px 10px 10px;
-  padding: 18px 5px;
-  border-radius: 22px;
+.account-stats {
+  margin: -48px 12px 10px;
+  padding: 16px 0;
+  border-radius: 12px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  overflow: hidden;
+  grid-template-columns: repeat(3, 1fr);
   background: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.account-stats button {
+  border: 0;
+  border-right: 1px solid #eef2f7;
+  background: transparent;
+}
+
+.account-stats button:last-child {
+  border-right: 0;
+}
+
+.account-stats strong {
+  display: block;
+  color: #ff2d4f;
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.account-stats span {
+  display: block;
+  margin-top: 4px;
+  color: #3f4f6b;
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.quick-card {
+  margin: 0 10px 10px;
+
+  padding: 18px 5px;
+
+  border-radius: 22px;
+
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  overflow: hidden;
+
+  background: #ffffff;
+
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
 .quick-item {
   position: relative;
+
   min-width: 0;
+
   /* min-height: 104px; */
+
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
+
   justify-content: flex-start;
+
   cursor: pointer;
+
   text-align: center;
+
   -webkit-tap-highlight-color: transparent;
 }
 
 .quick-item + .quick-item::before {
   position: absolute;
+
   top: 6px;
+
   bottom: 6px;
+
   left: 0;
+
   width: 1px;
+
   background: #eef2f7;
+
   content: "";
 }
 
 .quick-icon {
   width: 40px;
+
   height: 40px;
+
   border-radius: 12px;
+
   display: grid;
+
   place-items: center;
+
   color: #ffffff;
+
   font-size: 22px;
+
   line-height: 1;
 }
 
@@ -516,41 +715,65 @@ onMounted(() => {
 
 .quick-item strong {
   width: 100%;
+
   color: #2a3a5b;
+
   font-size: 11px;
+
   font-weight: 600;
+
   line-height: 15px;
+
   margin-top: 5px;
+
   overflow: hidden;
+
   /* text-overflow: ellipsis; */
+
   white-space: nowrap;
 }
 
 .quick-item small {
   color: #64748b;
+
   font-size: 11px;
+
   font-weight: 500;
+
   line-height: 16px;
 }
 
 .menu-card {
   margin: 0 12px;
+
   padding: 8px 0;
+
   border-radius: 12px;
+
   overflow: hidden;
+
   background: #ffffff;
+
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .menu-item {
   width: 100%;
+
   /* height: 60px; */
+
   padding: 12px 15px;
+
   display: flex;
+
   align-items: center;
+
   gap: 10px;
+
   cursor: pointer;
+
   text-align: left;
+
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -560,36 +783,47 @@ onMounted(() => {
 
 .verification-menu-item.is-disabled {
   cursor: default;
+
   opacity: 0.85;
 }
 
 .verification-title-row {
   display: flex;
+
   align-items: center;
+
   gap: 7px;
 }
 
 .verification-status {
   margin: 0 !important;
+
   border-radius: 999px;
+
   padding: 2px 7px;
+
   font-size: 9px !important;
+
   font-weight: 700 !important;
+
   line-height: 14px !important;
 }
 
 .is-under-review .verification-status {
   color: #1677ff;
+
   background: #eaf3ff;
 }
 
 .is-verified .verification-status {
   color: #16a34a;
+
   background: #e8f7ee;
 }
 
 .is-rejected .verification-status {
   color: #dc2626;
+
   background: #fff1f2;
 }
 
@@ -599,102 +833,152 @@ onMounted(() => {
 
 .is-under-review .verification-menu-icon {
   color: #1677ff;
+
   background: #eaf3ff;
 }
 
 .is-verified .verification-menu-icon {
   color: #16a34a;
+
   background: #e8f7ee;
 }
 
 .is-rejected .verification-menu-icon {
   color: #dc2626;
+
   background: #fff1f2;
 }
 
 .verified-lock {
   flex: 0 0 auto;
+
   display: inline-flex;
+
   align-items: center;
+
   gap: 4px;
+
   color: #16a34a;
+
   font-size: 10px;
+
   font-weight: 700;
 }
 
 .menu-icon {
   width: 44px;
+
   height: 44px;
+
   border-radius: 8px;
+
   display: grid;
+
   place-items: center;
+
   flex: 0 0 auto;
+
   color: #1677ff;
+
   font-size: 18px;
+
   line-height: 1;
+
   background: #eef6ff;
 }
 
 .menu-copy {
   min-width: 0;
+
   flex: 1;
 }
 
 .menu-copy strong {
   display: block;
+
   color: #111827;
+
   font-size: 12px;
+
   font-weight: 500;
+
   line-height: 20px;
 }
 
 .menu-copy small {
   display: block;
+
   margin-top: 4px;
+
   color: #64748b;
+
   font-size: 12px;
+
   font-weight: 500;
+
   line-height: 16px;
 }
 
 .menu-arrow {
   flex: 0 0 auto;
+
   color: #94a3b8;
+
   font-size: 18px;
+
   line-height: 1;
 }
 
 .logout-card {
   height: 50px;
+
   margin: 14px 12px 0;
+
   border-radius: 12px;
+
   display: flex;
+
   align-items: center;
+
   justify-content: center;
+
   gap: 12px;
+
   color: #ff5a5f;
+
   cursor: pointer;
+
   font-size: 14px;
+
   font-weight: 600;
+
   line-height: 20px;
+
   background: #ffffff;
+
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+
   transition: all 0.2s ease;
+
   -webkit-tap-highlight-color: transparent;
 }
 
 .logout-card:hover,
 .logout-card:active {
   background: #fff5f6;
+
   transform: scale(0.98);
 }
 
 .logout-icon {
   width: 20px;
+
   height: 20px;
+
   color: #ff5a5f;
+
   /* font-size: 24px; */
+
   line-height: 1;
 }
-
 </style>

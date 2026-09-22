@@ -27,10 +27,10 @@ export interface UserVerificationSubmitRequestData {
   email: string
   address: string
   city: string
-  shop_name: string
-  business_type: string
-  store_description: string
-  store_photos: string[]
+  shop_name?: string
+  business_type?: string
+  store_description?: string
+  store_photos?: string[]
   remark: string
 }
 

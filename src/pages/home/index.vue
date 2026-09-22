@@ -571,15 +571,15 @@ onBeforeUnmount(() => {
             <h3 :title="item.name">
               {{ item.name }}
             </h3>
-            <div class="today-card__row">
+            <!-- <div class="today-card__row">
               <span>China Cost</span><strong>{{ item.cost }}</strong>
-            </div>
+            </div> -->
             <div class="today-card__row">
               <span>PH Price</span><strong>{{ item.price }}</strong>
             </div>
-            <div class="today-card__row">
+            <!-- <div class="today-card__row">
               <span>Profit / Item</span><strong>{{ item.profit }}</strong>
-            </div>
+            </div> -->
             <!-- <button type="button">
               View Details
             </button> -->
@@ -616,15 +616,15 @@ onBeforeUnmount(() => {
             <h3 :title="getRawProductTitle(item)">
               {{ getRawProductTitle(item) }}
             </h3>
-            <div class="today-card__row">
+            <!-- <div class="today-card__row">
               <span>China Cost</span><strong>{{ item.chinaPrice }}</strong>
-            </div>
+            </div> -->
             <div class="today-card__row">
               <span>PH Price</span><strong>{{ item.phPrice }}</strong>
             </div>
-            <div class="today-card__row">
+            <!-- <div class="today-card__row">
               <span>Profit / Item</span><strong>{{ item.profit }}</strong>
-            </div>
+            </div> -->
           </article>
         </div>
       </div>

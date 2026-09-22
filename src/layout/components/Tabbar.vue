@@ -19,6 +19,10 @@ const iconMap: Record<string, { icon: string, activeIcon: string }> = {
     icon: "mdi:calculator-variant",
     activeIcon: "mdi:calculator-variant"
   },
+  "gift-o": {
+    icon: "mdi:gift-outline",
+    activeIcon: "mdi:gift"
+  },
   "star-o": {
     icon: "mdi:star-outline",
     activeIcon: "mdi:star"
@@ -29,10 +33,13 @@ const iconMap: Record<string, { icon: string, activeIcon: string }> = {
   }
 }
 
+const tabbarOrder = ["/", "/categories", "/rewards", "/profile"]
+
 const tabbarRoutes = computed(() => {
   const routes = router.getRoutes()
   return routes
     .filter(route => route.meta.layout?.tabbar?.showTabbar)
+    .sort((a, b) => tabbarOrder.indexOf(a.path) - tabbarOrder.indexOf(b.path))
     .map((route) => {
       const iconKey = route.meta.layout?.tabbar?.icon as string
       const mapped = iconMap[iconKey] ?? {
@@ -50,7 +57,7 @@ const tabbarRoutes = computed(() => {
 })
 
 function getTabbarTarget(path: string) {
-  if (!isLoggedIn() && path === "/favorites") {
+  if (!isLoggedIn() && ["/favorites", "/rewards"].includes(path)) {
     return "/login"
   }
 

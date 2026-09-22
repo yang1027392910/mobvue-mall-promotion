@@ -13,6 +13,7 @@ const whiteListByPath: string[] = [
   "/product/detail",
   "/calculator",
   "/favorites",
+  "/cart",
   "/profile",
   "/procurement-support",
   "/about-policies",

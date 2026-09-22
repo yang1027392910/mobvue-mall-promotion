@@ -6,7 +6,7 @@ const VITE_PUBLIC_PATH = import.meta.env.VITE_PUBLIC_PATH
 
 const VITE_ROUTER_HISTORY = import.meta.env.VITE_ROUTER_HISTORY
 
-/** 系统页面 */
+/** 绯荤粺椤甸潰 */
 export const systemRoutes: RouteRecordRaw[] = [
   {
     path: "/403",
@@ -27,8 +27,60 @@ export const systemRoutes: RouteRecordRaw[] = [
   }
 ]
 
-/** 业务页面 */
+/** 涓氬姟椤甸潰 */
 export const routes: RouteRecordRaw[] = [
+  {
+    path: "/rewards",
+    component: () => import("@/pages/rewards/index.vue"),
+    name: "Rewards",
+    meta: {
+      title: "Rewards",
+      robots: "noindex, nofollow",
+      layout: {
+        tabbar: {
+          showTabbar: true,
+          label: "Rewards",
+          icon: "gift-o"
+        }
+      }
+    }
+  },
+  {
+    path: "/coupons",
+    component: () => import("@/pages/coupons/index.vue"),
+    name: "MyCoupons",
+    meta: { title: "My Coupons", robots: "noindex, nofollow" }
+  },
+  {
+    path: "/coupon-detail",
+    component: () => import("@/pages/coupons/detail.vue"),
+    name: "CouponDetail",
+    meta: { title: "Coupon Detail", robots: "noindex, nofollow" }
+  },
+  {
+    path: "/order-success",
+    name: "OrderSuccess",
+    component: () => import("@/pages/orders/success.vue"),
+    meta: { title: "Order Submitted", robots: "noindex, nofollow" }
+  },
+  {
+    path: "/orders",
+    name: "MyOrders",
+    component: () => import("@/pages/orders/index.vue"),
+    meta: { title: "My Orders", robots: "noindex, nofollow" }
+  },
+  {
+    path: "/order-details",
+    name: "OrderDetails",
+    component: () => import("@/pages/orders/details.vue"),
+    meta: { title: "Order Details", robots: "noindex, nofollow" }
+  },
+  {
+    path: "/cart",
+    name: "Cart",
+    component: () => import("@/pages/cart/index.vue"),
+    meta: { title: "My Cart", robots: "noindex, nofollow" }
+  },
   {
     path: "/login",
     component: () => import("@/pages/login/index.vue"),
@@ -146,7 +198,7 @@ export const routes: RouteRecordRaw[] = [
         navBar: {
           showNavBar: true,
           showLeftArrow: true,
-          showRightShare: true
+          showRightShare: false
         }
       }
     }
@@ -292,9 +344,7 @@ export const routes: RouteRecordRaw[] = [
           showLeftArrow: true
         },
         tabbar: {
-          showTabbar: true,
-          label: "Favorites",
-          icon: "star-o"
+          showTabbar: false
         }
       }
     }
@@ -320,11 +370,11 @@ export const routes: RouteRecordRaw[] = [
   }
 ]
 
-/** 路由实例 */
+/** 璺敱瀹炰緥 */
 export const router = createRouter({
   history: VITE_ROUTER_HISTORY === "hash" ? createWebHashHistory(VITE_PUBLIC_PATH) : createWebHistory(VITE_PUBLIC_PATH),
   routes: [...systemRoutes, ...routes]
 })
 
-// 注册路由导航守卫
+// 娉ㄥ唽璺敱瀵艰埅瀹堝崼
 registerNavigationGuard(router)

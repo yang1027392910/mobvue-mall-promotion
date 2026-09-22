@@ -2,22 +2,13 @@
 import type { RawProductItem } from "@@/apis/products/type"
 import { favoriteClickApi } from "@@/apis/favorite"
 import { getProductAiContentApi, getProductDetailApi } from "@@/apis/products"
-import VerifiedAccessDialog from "@@/components/VerifiedAccessDialog.vue"
 import { requireLogin } from "@@/utils/guest-access"
-import { Icon } from "@iconify/vue"
 import { showFailToast, showSuccessToast } from "vant"
-import { computed, nextTick, ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import ProductImagePreview from "@/components/ProductImagePreview/index.vue"
 import { useSeo } from "@/composables/useSeo"
-import { useUserStore } from "@/pinia/stores/user"
-
-interface SupplierContact {
-  name: string
-  whatsapp: string
-  wechat: string
-  phone: string
-}
+import { useCartStore } from "@/pinia/stores/cart"
 
 interface ProductDetail {
   id: number
@@ -34,19 +25,9 @@ interface ProductDetail {
   imageCount: string
   sales: number
   description: string
-  chinaCost: string
   phPrice: string
-  profit: string
-  profitMargin: string
-  minimumOrderQuantity: number
-  unitCost: string
   sellingPrice: string
-  shippingCost: string
-  otherFees: string
   isFavorite: boolean
-  canViewSupplierContact: boolean
-  supplierContact: SupplierContact | null
-  params: Array<{ icon: string, label: string, value: string }>
 }
 
 interface ProductSeoPayload {
@@ -60,7 +41,7 @@ interface ProductSeoPayload {
 
 const route = useRoute()
 const router = useRouter()
-const userStore = useUserStore()
+const cart = useCartStore()
 const { setProductSeo } = useSeo()
 
 const isFavorite = ref(false)
@@ -72,26 +53,9 @@ const activeImageIndex = ref(0)
 const previewVisible = ref(false)
 const previewImages = ref<string[]>([])
 const previewStartIndex = ref(0)
-const supplierContactSection = ref<HTMLElement | null>(null)
-const showVerificationDialog = ref(false)
 const productDetailRequestId = ref(0)
 
 const productId = computed(() => Number(route.query.id || 0))
-const verificationStatus = computed(() => Number(userStore.userInfo.verificationStatus ?? -1))
-const realNameVerified = computed(() => verificationStatus.value === 1)
-const showSupplierSecondaryAction = computed(() => !realNameVerified.value || !product.value?.canViewSupplierContact)
-const supplierActionIcon = computed(() => {
-  if (!realNameVerified.value) return "lock"
-  return "service-o"
-})
-const supplierActionColor = computed(() => {
-  if (!realNameVerified.value) return "#2563eb"
-  return "#d97706"
-})
-const supplierActionText = computed(() => {
-  if (!realNameVerified.value) return "Verify to Unlock"
-  return "Contact Us"
-})
 const activeImageNumber = computed(() => product.value?.images.length ? activeImageIndex.value + 1 : 0)
 const totalImageNumber = computed(() => product.value?.images.length || 1)
 const productDescriptionHtml = computed(() => sanitizeRichText(product.value?.description ?? ""))
@@ -133,6 +97,8 @@ function parseImages(images?: string | string[]) {
 }
 
 function isSafeUrl(value: string) {
+  // Strip control characters to detect obfuscated unsafe URL schemes.
+  // eslint-disable-next-line no-control-regex
   const url = value.trim().replace(/[\u0000-\u001F\u007F\s]+/g, "")
 
   if (!url) return true
@@ -237,22 +203,6 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
   const cover = item.cover ?? item.image ?? item.imageUrl
   const allImages = [cover, ...images].filter(Boolean) as string[]
   const imageUrls = allImages.map(getAssetUrl).filter(Boolean)
-  const chinaPrice = toNumber(item.chinaPrice)
-  const phPrice = toNumber(item.phPrice ?? item.price)
-  const profit = toNumber(item.profit, phPrice - chinaPrice)
-  const profitMargin = phPrice ? Math.round((profit / phPrice) * 100) : 0
-  // const createdAt = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "--"
-  const minimumOrderQuantity = toNumber(item.minimumOrderQuantity, 10)
-  const shippingFee = toNumber(item.shippingFee)
-  const otherFees = toNumber(item.otherFees)
-  const supplierContact = item.supplierContact
-    ? {
-        name: String(item.supplierContact.name ?? ""),
-        whatsapp: String(item.supplierContact.whatsapp ?? ""),
-        wechat: String(item.supplierContact.wechat ?? ""),
-        phone: String(item.supplierContact.phone ?? "")
-      }
-    : null
 
   return {
     id: toNumber(item.id ?? item.productId),
@@ -269,23 +219,9 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
     imageCount: `${imageUrls.length ? 1 : 0}/${imageUrls.length || 1}`,
     sales: toNumber(item.sales ?? item.salesVolume),
     description: String(item.descriptionHtml ?? item.description ?? item.subtitle ?? ""),
-    chinaCost: formatPeso(item.chinaPrice),
     phPrice: formatPeso(item.phPrice ?? item.price),
-    profit: formatPeso(item.profit),
-    profitMargin: `${profitMargin}%`,
-    minimumOrderQuantity,
-    unitCost: String(chinaPrice),
-    sellingPrice: String(phPrice),
-    shippingCost: String(shippingFee),
-    otherFees: String(otherFees),
-    isFavorite: Boolean(item.isFavorite ?? item.favorite ?? false),
-    canViewSupplierContact: item.canViewSupplierContact === true,
-    supplierContact,
-    params: [
-      { icon: "orders-o", label: "Min Order", value: `${minimumOrderQuantity} pcs` },
-      { icon: "logistics", label: "Shipping Fee", value: formatPeso(shippingFee) }
-
-    ]
+    sellingPrice: String(toNumber(item.phPrice ?? item.price)),
+    isFavorite: Boolean(item.isFavorite ?? item.favorite ?? false)
   }
 }
 
@@ -362,62 +298,11 @@ async function toggleFavorite() {
   }
 }
 
-function handleCalculateProfit() {
+async function handleAddToCart() {
   if (!requireLogin(router) || !product.value) return
-
-  router.push({
-    path: "/calculator",
-    query: {
-      productName: product.value.name,
-      moq: product.value.minimumOrderQuantity,
-      quantity: product.value.minimumOrderQuantity,
-      unitCost: product.value.unitCost,
-      sellingPrice: product.value.sellingPrice,
-      shippingCost: product.value.shippingCost,
-      otherFees: product.value.otherFees
-    }
-  })
-}
-
-function promptUserVerification() {
-  showVerificationDialog.value = true
-}
-
-function handleVerificationConfirm() {
-  router.push("/user-verification")
-}
-
-async function ensureRealNameVerified() {
-  if (realNameVerified.value) return true
-
-  await userStore.getInfo()
-  return realNameVerified.value
-}
-
-async function handleSupplierAction() {
-  if (!requireLogin(router) || !product.value) return
-
-  if (!(await ensureRealNameVerified())) {
-    await promptUserVerification()
-    return
-  }
-
-  if (product.value.canViewSupplierContact) {
-    if (!product.value.supplierContact) {
-      showFailToast("Supplier contact information is unavailable.")
-      return
-    }
-
-    nextTick(() => {
-      supplierContactSection.value?.scrollIntoView({
-        behavior: "smooth",
-        block: "end"
-      })
-    })
-    return
-  }
-
-  handleContactUs()
+  const added = await cart.add({ id: product.value.id, title: product.value.name, image: product.value.image, price: Number(product.value.sellingPrice) })
+  if (added) showSuccessToast("Added to cart")
+  else showFailToast(cart.errorText || "Unable to add this product. Please try again.")
 }
 
 function handleContactUs() {
@@ -458,36 +343,6 @@ function handleDescriptionImageClick(event: MouseEvent) {
   const startIndex = Math.max(0, images.findIndex(image => image === currentImage))
 
   openImagePreview(images, startIndex)
-}
-
-async function copySupplierContact(label: string, value: string) {
-  const contact = value.trim()
-
-  if (!contact) {
-    showFailToast(`${label} is unavailable.`)
-    return
-  }
-
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(contact)
-    } else {
-      const textarea = document.createElement("textarea")
-      textarea.value = contact
-      textarea.style.position = "fixed"
-      textarea.style.opacity = "0"
-      document.body.appendChild(textarea)
-      textarea.select()
-      const copied = document.execCommand("copy")
-      textarea.remove()
-
-      if (!copied) throw new Error("Copy failed")
-    }
-
-    showSuccessToast(`${label} copied.`)
-  } catch {
-    showFailToast("Unable to copy. Please copy it manually.")
-  }
 }
 
 watch(productId, () => {
@@ -549,187 +404,94 @@ watch(productId, () => {
         </section>
 
         <section class="basic-section">
-          <h1 class="product-name">
-            {{ product.name }}
-          </h1>
-          <div class="score-row">
-            <div class="sales-row">
-              <van-icon class="score-icon sales" name="fire-o" />
-              <div class="score-label">
-                Already sold
-              </div>
-              <div class="score-value sales">
-                {{ product.sales }}
-              </div>
-            </div>
-            <div
-              v-for="item in product.params"
-              :key="item.label"
-              class="sales-row"
+          <div class="product-heading">
+            <h1 class="product-name">
+              {{ product.name }}
+            </h1>
+            <button
+              class="favorite-toggle"
+              type="button"
+              :aria-label="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
+              :aria-pressed="isFavorite"
+              :disabled="favoriteLoading"
+              @click="toggleFavorite"
             >
-              <van-icon class="score-icon" :name="item.icon" />
-              <div class="score-label">
-                {{ item.label }}
-              </div>
-              <div class="score-value">
-                {{ item.value }}
-              </div>
-            </div>
+              <van-icon :name="isFavorite ? 'like' : 'like-o'" />
+            </button>
           </div>
+          <p class="sales-count">
+            {{ product.sales }} sold
+          </p>
+          <p class="retail-price">
+            {{ product.phPrice }}
+          </p>
         </section>
 
-        <section class="profit-card">
-          <div class="price-grid">
-            <div class="price-item">
-              <div class="price-label">
-                China Cost
-              </div>
-              <div class="price-value cost">
-                {{ product.chinaCost }}
-              </div>
-            </div>
-            <div class="price-item">
-              <div class="price-label">
-                PH Price
-              </div>
-              <div class="price-value ph">
-                {{ product.phPrice }}
-              </div>
-            </div>
-            <div class="price-item">
-              <div class="price-label">
-                Profit
-              </div>
-              <div class="price-value profit">
-                {{ product.profit }}
-              </div>
-            </div>
-            <div class="price-item">
-              <div class="price-label">
-                Profit Margin
-              </div>
-              <div class="price-value profit">
-                {{ product.profitMargin }}
-              </div>
-            </div>
-          </div>
+        <section class="fulfillment-card" aria-label="Pickup and delivery">
+          <button class="fulfillment-row" type="button" @click="handleContactUs">
+            <van-icon class="fulfillment-icon" name="shop-o" />
+            <span class="fulfillment-text">
+              <strong>Self Pickup Available</strong>
+              <span>Pick up at our store in Cavite</span>
+            </span>
+            <van-icon name="arrow" />
+          </button>
+          <button class="fulfillment-row" type="button" @click="handleContactUs">
+            <van-icon class="fulfillment-icon" name="logistics" />
+            <span class="fulfillment-text">
+              <strong>Delivery</strong>
+              <span>Contact us for delivery</span>
+            </span>
+            <van-icon name="arrow" />
+          </button>
         </section>
 
         <section v-if="productDescriptionHtml.trim()" class="description-card">
+          <h2>Product Description</h2>
           <div
             class="product-description"
             v-html="productDescriptionHtml"
             @click="handleDescriptionImageClick"
           />
         </section>
-
-        <section
-          v-if="product.canViewSupplierContact && product.supplierContact"
-          ref="supplierContactSection"
-          class="supplier-contact-card"
-        >
-          <div class="supplier-contact-heading">
-            <div>
-              <van-icon name="phone-o" />
-              <h2>Supplier Information</h2>
-            </div>
-            <van-icon class="supplier-contact-check" name="checked" />
-          </div>
-
-          <div class="supplier-contact-list">
-            <div class="supplier-contact-row">
-              <van-icon name="manager-o" />
-              <span>Supplier Name</span>
-              <strong>{{ product.supplierContact.name || "--" }}</strong>
-            </div>
-            <div class="supplier-contact-row">
-              <van-icon name="chat-o" />
-              <span>WhatsApp</span>
-              <strong>{{ product.supplierContact.whatsapp || "--" }}</strong>
-              <button
-                class="contact-copy-button"
-                type="button"
-                aria-label="Copy WhatsApp"
-                @click="copySupplierContact('WhatsApp', product.supplierContact.whatsapp)"
-              >
-                <Icon icon="meteor-icons:copy" />
-              </button>
-            </div>
-            <div class="supplier-contact-row">
-              <van-icon name="comment-o" />
-              <span>WeChat</span>
-              <strong>{{ product.supplierContact.wechat || "--" }}</strong>
-              <button
-                class="contact-copy-button"
-                type="button"
-                aria-label="Copy WeChat"
-                @click="copySupplierContact('WeChat', product.supplierContact.wechat)"
-              >
-                <Icon icon="meteor-icons:copy" />
-              </button>
-            </div>
-            <div class="supplier-contact-row">
-              <van-icon name="phone-o" />
-              <span>Phone</span>
-              <strong>{{ product.supplierContact.phone || "--" }}</strong>
-              <button
-                class="contact-copy-button"
-                type="button"
-                aria-label="Copy phone number"
-                @click="copySupplierContact('Phone', product.supplierContact.phone)"
-              >
-                <Icon icon="meteor-icons:copy" />
-              </button>
-            </div>
-          </div>
-        </section>
       </template>
     </main>
 
     <div
-      v-if="product"
+      v-if="product && !loading && !errorText"
       class="bottom-bar"
-      :class="{ 'has-two-actions': !showSupplierSecondaryAction }"
     >
       <van-button
         class="bottom-button favorite-action"
         plain
-        :icon="isFavorite ? 'like' : 'heart-o'"
+        :icon="isFavorite ? 'like' : 'like-o'"
         :loading="favoriteLoading"
         color="#2563eb"
         @click="toggleFavorite"
       >
-        {{ isFavorite ? "Favorited" : "Add to Favorites" }}
+        {{ isFavorite ? "Favorited" : "Favorite" }}
       </van-button>
       <van-button
-        v-if="showSupplierSecondaryAction"
         class="bottom-button supplier-secondary-action"
-        :class="{
-          'is-locked': !realNameVerified,
-          'no-access': realNameVerified && !product.canViewSupplierContact,
-        }"
         plain
-        :icon="supplierActionIcon"
-        :color="supplierActionColor"
-        @click="handleSupplierAction"
+        icon="service-o"
+        color="#ff8500"
+        @click="handleContactUs"
       >
-        {{ supplierActionText }}
+        Contact Us
       </van-button>
       <van-button
         class="bottom-button supplier-action"
         type="primary"
         color="#2563eb"
-        @click="handleCalculateProfit"
+        icon="shopping-cart-o"
+        :loading="cart.saving"
+        :disabled="cart.busy"
+        @click="handleAddToCart"
       >
-        Calculate Profit
+        Add to Cart
       </van-button>
     </div>
-
-    <VerifiedAccessDialog
-      v-model:show="showVerificationDialog"
-      :status="verificationStatus"
-      @confirm="handleVerificationConfirm"
-    />
 
     <ProductImagePreview
       v-model:show="previewVisible"
@@ -748,25 +510,9 @@ watch(productId, () => {
   color: #111827;
 }
 
-.detail-nav :deep(.van-icon) {
-  color: #111827;
-}
-
-.nav-icon-button {
-  width: 30px;
-  height: 30px;
-  border: 0;
-  background: transparent;
-  color: #111827;
-  font-size: 20px;
-  display: inline-grid;
-  place-items: center;
-  padding: 0;
-}
-
 .detail-content {
   min-height: calc(100vh - 46px);
-  padding-bottom: 96px;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
   background: #f7f9fc;
 }
 
@@ -839,105 +585,132 @@ watch(productId, () => {
   border-radius: 999px;
   background: rgba(17, 24, 39, 0.72);
   color: #ffffff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   display: grid;
   place-items: center;
   padding: 0 10px;
 }
 
-.basic-section,
-.profit-card,
+.basic-section {
+  padding: 14px 18px 16px;
+  background: #ffffff;
+}
+.product-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.product-name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: #0c1738;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 26px;
+  overflow-wrap: anywhere;
+}
+.favorite-toggle {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #eef0f4;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #475569;
+  box-shadow: 0 2px 8px #0f172a0d;
+  font-size: 22px;
+  cursor: pointer;
+}
+.favorite-toggle[aria-pressed="true"] {
+  color: #2563eb;
+}
+.sales-count {
+  margin: 4px 0 8px;
+  color: #52617a;
+  font-size: 12px;
+  line-height: 18px;
+}
+.retail-price {
+  margin: 0;
+  color: #ff2424;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 34px;
+}
+.fulfillment-card,
 .description-card {
-  margin: 8px 8px 0;
+  margin: 12px 10px 0;
   border-radius: 16px;
-  padding: 0 10px;
+  padding: 0 14px;
   background: #ffffff;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
 }
-
-.basic-section {
-  padding: 0 10px 10px;
+.fulfillment-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 0;
+  border: 0;
+  background: transparent;
+  color: #0c1738;
+  text-align: left;
+  cursor: pointer;
 }
-
-.product-name {
-  margin: 0;
-  color: #111827;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 28px;
+.fulfillment-row + .fulfillment-row {
+  border-top: 1px solid #e5e9f0;
 }
-
-.score-row {
+.fulfillment-icon {
+  flex-shrink: 0;
+  font-size: 24px;
+}
+.fulfillment-text {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px 10px;
-  margin-top: 5px;
-}
-
-.sales-row {
+  flex: 1;
   min-width: 0;
-  text-align: center;
+  gap: 4px;
+  overflow-wrap: anywhere;
 }
-
-.score-icon {
-  margin-bottom: 4px;
-  color: #2563eb;
-  font-size: 17px;
+.fulfillment-text strong {
+  font-size: 14px;
+  line-height: 20px;
 }
-
-.score-icon.sales {
-  color: #ff5a1f;
-}
-
-.score-label {
-  min-width: 0;
-  color: #6b7280;
+.fulfillment-text > span {
+  color: #52617a;
   font-size: 12px;
   line-height: 18px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+}
+.description-card h2 {
+  margin: 0 0 12px;
+  color: #0c1738;
+  font-size: 16px;
+  line-height: 24px;
 }
 
-.score-value {
-  min-width: 0;
-  margin-top: 4px;
-  color: #2563eb;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: normal;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.score-value.sales {
-  color: #ff5a1f;
-}
-
-.product-subtitle,
 .product-description {
   margin: 0;
   color: #6b7280;
-  font-size: 14px;
-  line-height: 21px;
+  font-size: 12px;
+  line-height: 19px;
   overflow-wrap: anywhere;
 }
 
 .description-card {
-  padding: 10px;
+  padding: 14px;
 }
 ::v-deep(.description-card .product-description h3) {
   padding: 0;
   margin: 0;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 30px;
+  line-height: 26px;
   color: #111827;
 }
 .product-description :deep(p) {
-  text-indent: 2ch;
   font-size: 12px;
   color: #374151;
 }
@@ -946,7 +719,7 @@ watch(productId, () => {
 .product-description :deep(ol),
 .product-description :deep(blockquote),
 .product-description :deep(figure) {
-  margin: 0 0 5px;
+  margin: 0 0 8px;
   font-size: 12px;
 }
 
@@ -987,89 +760,6 @@ watch(productId, () => {
   text-decoration: underline;
 }
 
-.product-subtitle {
-  color: #374151;
-  font-weight: 600;
-}
-
-.profit-card {
-  padding: 16px;
-}
-
-.price-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.price-item {
-  min-width: 0;
-  text-align: center;
-}
-
-.price-label {
-  color: #6b7280;
-  font-size: 12px;
-  line-height: 18px;
-}
-
-.price-value {
-  margin-top: 4px;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: normal;
-}
-
-.price-value.cost {
-  color: #ef4444;
-}
-
-.price-value.ph {
-  color: #2563eb;
-}
-
-.price-value.profit {
-  color: #16a34a;
-}
-
-.supplier-permission-card {
-  min-height: 64px;
-  margin: 12px 12px 0;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-}
-
-.supplier-permission-card.has-access {
-  color: #2e9d5c;
-  background: #e8f7ee;
-}
-
-.supplier-permission-card.no-access {
-  color: #b96a16;
-  background: #fff4e5;
-}
-
-.supplier-permission-icon,
-.supplier-check-icon {
-  flex: 0 0 auto;
-  font-size: 20px;
-}
-
-.supplier-permission-card p {
-  flex: 1;
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 19px;
-}
-
-.supplier-check-icon {
-  color: #2e9d5c;
-}
-
 .bottom-bar {
   position: fixed;
   left: 50%;
@@ -1077,18 +767,16 @@ watch(productId, () => {
   z-index: 20;
   width: 100%;
   max-width: 500px;
-  height: 68px;
+  min-height: 68px;
+  height: auto;
   transform: translateX(-50%);
   display: grid;
-  grid-template-columns: 28fr 28fr 30fr;
+  box-sizing: border-box;
+  grid-template-columns: 1fr 1fr 1.15fr;
   gap: 5px;
-  padding: 5px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 -8px 22px rgba(15, 23, 42, 0.08);
-}
-
-.bottom-bar.has-two-actions {
-  grid-template-columns: 1fr 1fr;
 }
 
 .bottom-button {
@@ -1107,108 +795,10 @@ watch(productId, () => {
 }
 
 .supplier-secondary-action {
-  background: #f0faf4;
-}
-
-.supplier-secondary-action.is-locked {
-  background: #eff6ff;
-}
-
-.supplier-secondary-action.no-access {
-  background: #fff7ed;
+  background: #ffffff;
 }
 
 .supplier-action :deep(.van-button__text) {
   font-size: 13px;
 }
-
-.supplier-contact-card {
-  scroll-margin-bottom: 76px;
-  margin: 12px 12px 0;
-  overflow: hidden;
-  border: 1px solid #d7efdf;
-  border-radius: 14px;
-  padding: 14px;
-  background: #ffffff;
-  box-shadow: 0 8px 22px rgba(46, 157, 92, 0.08);
-}
-
-.supplier-contact-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  color: #2e9d5c;
-}
-
-.supplier-contact-heading > div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.supplier-contact-heading h2 {
-  margin: 0;
-  color: #111827;
-  font-size: 16px;
-  line-height: 24px;
-}
-
-.supplier-contact-heading .van-icon,
-.supplier-contact-check {
-  font-size: 20px;
-}
-
-.supplier-contact-list {
-  overflow: hidden;
-  border: 1px solid #eef2f7;
-  border-radius: 12px;
-}
-
-.supplier-contact-row {
-  min-height: 52px;
-  display: grid;
-  grid-template-columns: 20px 100px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-bottom: 1px solid #eef2f7;
-}
-
-.supplier-contact-row:last-child {
-  border-bottom: 0;
-}
-
-.supplier-contact-row > .van-icon {
-  color: #2e9d5c;
-  font-size: 18px;
-}
-
-.supplier-contact-row span {
-  color: #6b7280;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.supplier-contact-row strong {
-  min-width: 0;
-  color: #111827;
-  font-size: 14px;
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-
-.contact-copy-button {
-  width: 28px;
-  height: 28px;
-  border: 0;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #2563eb;
-  background: transparent;
-  font-size: 18px;
-}
-
 </style>

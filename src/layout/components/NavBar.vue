@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue"
+import { useCartStore } from "@/pinia/stores/cart"
+import { useUserStore } from "@/pinia/stores/user"
 
+const cart = useCartStore()
+const user = useUserStore()
 const route = useRoute()
 
 const router = useRouter()
+
+watch(() => [route.name, user.token], () => {
+  if (route.name === "ProductCard" && user.token) cart.fetchItems()
+}, { immediate: true })
 
 const title = computed(() => {
   if (route.name === "ProductList" && route.query.categoryName) {
@@ -53,6 +61,9 @@ function handleSearch() {
       </button>
       <button v-if="showRightCustom" class="share-icon" type="button" aria-label="Share supplier" @click="handleCustom">
         <Icon icon="mdi:customer-service" />
+      </button>
+      <button v-if="route.name === 'ProductCard'" class="share-icon" type="button" aria-label="Open shopping cart" @click="router.push('/cart')">
+        <van-icon name="shopping-cart-o" :badge="cart.count || undefined" />
       </button>
     </template>
   </van-nav-bar>
