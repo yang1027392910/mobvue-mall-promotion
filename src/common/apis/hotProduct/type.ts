@@ -5,6 +5,19 @@ export interface HotProductListRequestData {
 }
 
 export interface RawHotProductItem {
+  rating?: number | string
+  categoryIcon?: string
+  categoryName?: string
+  category?: string | { name?: string, categoryName?: string }
+  isFavorite?: boolean | number | string
+  rank?: number | string
+  sold?: number | string
+  soldCount?: number | string
+  sales?: number | string
+  salesVolume?: number | string
+  currentPrice?: number | string
+  originalPrice?: number | string
+  hotTag?: string
   id?: number
   productId?: number
   hotProductId?: number

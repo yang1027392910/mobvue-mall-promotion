@@ -8,9 +8,10 @@ const user = useUserStore()
 const route = useRoute()
 
 const router = useRouter()
+const showRightCart = computed(() => route.name === "ProductCard" || route.name === "HotProducts")
 
 watch(() => [route.name, user.token], () => {
-  if (route.name === "ProductCard" && user.token) cart.fetchItems()
+  if (showRightCart.value && user.token) cart.fetchItems()
 }, { immediate: true })
 
 const title = computed(() => {
@@ -62,7 +63,7 @@ function handleSearch() {
       <button v-if="showRightCustom" class="share-icon" type="button" aria-label="Share supplier" @click="handleCustom">
         <Icon icon="mdi:customer-service" />
       </button>
-      <button v-if="route.name === 'ProductCard'" class="share-icon" type="button" aria-label="Open shopping cart" @click="router.push('/cart')">
+      <button v-if="showRightCart" class="share-icon" type="button" aria-label="Open shopping cart" @click="router.push('/cart')">
         <van-icon name="shopping-cart-o" :badge="cart.count || undefined" />
       </button>
     </template>
