@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import ProductSaleType from "@/components/ProductSaleType/index.vue"
+
 export interface ProductCardData {
+  saleType?: number | string | null
   id: number | string
   title: string
   image?: string
@@ -56,6 +59,7 @@ function formatMoney(value?: number) {
     @click="handleCardClick"
     @keyup.enter="handleCardClick"
   >
+    <ProductSaleType v-if="layout === 'grid'" class="product-card__sale-type" :sale-type="product.saleType" compact />
     <div class="product-card__image-wrap">
       <img
         v-if="product.image"
@@ -68,7 +72,7 @@ function formatMoney(value?: number) {
 
     <div class="product-card__body">
       <div class="product-card__title">
-        {{ product.title }}
+        <ProductSaleType v-if="layout !== 'grid'" :sale-type="product.saleType" compact /> {{ product.title }}
       </div>
       <div class="product-card__footer">
         <div class="product-card__metrics">
@@ -238,7 +242,15 @@ function formatMoney(value?: number) {
   line-height: 18px;
 }
 
+.product-card__sale-type {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
 .product-card--grid {
+  position: relative;
   display: block;
   padding: 0;
   border: 0;

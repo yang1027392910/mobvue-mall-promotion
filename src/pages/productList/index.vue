@@ -76,6 +76,7 @@ function normalizeProduct(item: RawProductItem): ProductItem {
   return {
     id: toNumber(item.id ?? item.productId),
     categoryId: toNumber(item.categoryId),
+    saleType: item.saleType,
     name: String(item.name ?? item.productName ?? item.title ?? ""),
     image: getProductImage(String(item.image ?? item.imageUrl ?? item.cover ?? "")),
     chinaCost,
@@ -193,11 +194,10 @@ watch(categoryId, () => {
             :show-favorite="false"
             :product="{
               id: item.id,
+              saleType: item.saleType,
               title: item.name,
               image: item.image,
-              chinaCost: item.chinaCost,
               price: item.phPrice,
-              profit: item.profit,
               currency: '\u20B1',
               isFavorite: item.isFavorite,
             }"

@@ -1,6 +1,7 @@
 import type { RawOrder } from "./type"
 
 export interface OrderLine {
+  saleType?: number | string | null
   id: string
   title: string
   image: string
@@ -9,6 +10,9 @@ export interface OrderLine {
   amount: number | null
 }
 export interface Order {
+  paymentStatus?: number | null
+  paymentMethod?: number | null
+  paymentReference?: string
   id: string
   orderNo: string
   createdAt: string
@@ -56,6 +60,7 @@ export function normalizeOrder(raw: RawOrder): Order {
     const quantity = amount(item.quantity) ?? 0
     return {
       id: String(item.productId ?? product.id ?? item.id ?? index),
+      saleType: typeof (item.saleType ?? product.saleType) === "string" || typeof (item.saleType ?? product.saleType) === "number" ? (item.saleType ?? product.saleType) as string | number : undefined,
       title: String(item.productName ?? item.name ?? item.title ?? product.name ?? product.title ?? "Product"),
       image: assetUrl(item.productImage ?? item.productCover ?? item.cover ?? item.image ?? item.imageUrl ?? product.cover ?? product.image),
       price,
@@ -78,6 +83,9 @@ export function normalizeOrder(raw: RawOrder): Order {
   const shipping = amount(raw.shippingFee)
   return {
     id,
+    paymentStatus: amount(raw.paymentStatus ?? raw.payment_status),
+    paymentMethod: amount(raw.paymentMethod ?? raw.payment_method),
+    paymentReference: String(raw.paymentReference ?? raw.payment_reference ?? raw.referenceNo ?? ""),
     orderNo: String(raw.orderNo ?? raw.orderNumber ?? id),
     createdAt: String(raw.createdAt ?? raw.createTime ?? raw.createdTime ?? ""),
     status,

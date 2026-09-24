@@ -390,3 +390,92 @@
     font-size: 11px;
   }
 }
+
+.order-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+.order-payment-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+.orders-page .order-pay-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 10px 24px;
+  border: 0;
+  border-radius: 11px;
+  background: linear-gradient(110deg, #ff124d, #ff0050);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+.order-pay-button .van-icon {
+  font-size: 21px;
+}
+.order-pay-button--full {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.order-payment-pending {
+  margin: 14px 0 0;
+  color: #627799;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.orders-page .order-pay-button.is-unpaid,
+.orders-page .order-pay-button.is-pending,
+.orders-page .order-pay-button.is-confirmed {
+  box-sizing: border-box;
+  width: fit-content;
+  min-height: 22px;
+  padding: 3px 12px;
+  gap: 4px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 16px;
+}
+.orders-page .order-pay-button.is-pending {
+  background: #d7dce5;
+  color: #576d8f;
+  cursor: default;
+}
+.orders-page .order-pay-button.is-unpaid .van-icon,
+.orders-page .order-pay-button.is-pending .van-icon,
+.orders-page .order-pay-button.is-confirmed .van-icon {
+  font-size: 12px;
+}
+.orders-page .order-pay-button.is-confirmed {
+  border: 0;
+  box-shadow: inset 0 0 0 1px #20b883;
+  background: #f2fbf7;
+  color: #008b50;
+  cursor: default;
+}
+
+.orders-page .order-pay-button.order-pay-button--full {
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  min-height: 34px;
+  padding: 7px 18px;
+  gap: 6px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 20px;
+}
+.orders-page .order-pay-button.order-pay-button--full .van-icon {
+  font-size: 16px;
+}

@@ -5,6 +5,7 @@ import { requireLogin } from "@@/utils/guest-access"
 import { showConfirmDialog, showFailToast, showSuccessToast } from "vant"
 import { computed, onMounted, ref, watch } from "vue"
 import { useRouter } from "vue-router"
+import ProductSaleType from "@/components/ProductSaleType/index.vue"
 import { useCartStore } from "@/pinia/stores/cart"
 import { useCouponsStore } from "@/pinia/stores/coupons"
 import { useOrdersStore } from "@/pinia/stores/orders"
@@ -110,6 +111,7 @@ async function loadRecommendations() {
       const image = String(item.cover ?? item.image ?? item.imageUrl ?? "")
       return {
         id: Number(item.id ?? item.productId),
+        saleType: item.saleType,
         title: String(item.name ?? item.productName ?? item.title ?? ""),
         image: !image || /^https?:\/\//.test(image) ? image : `${(import.meta.env.VITE_IMAGE_BASE_URL || "").replace(/\/$/, "")}/${image.replace(/^\//, "")}`,
         price: Number(item.phPrice ?? item.price)
@@ -165,6 +167,7 @@ onMounted(() => {
           <article v-for="item in cart.items" :key="item.id" class="cart-item">
             <van-checkbox :model-value="item.selected" :disabled="submitting || cart.busy" @update:model-value="runAction(cart.setSelected(item.id, $event))" shape="square" checked-color="#0860ff" :aria-label="`Select ${item.title}`" />
             <button class="item-image" :aria-label="`View ${item.title}`" @click="openProduct(item.id)">
+              <ProductSaleType class="image-sale-type" :sale-type="item.saleType" compact />
               <van-image :src="item.image" :alt="item.title" fit="cover" width="100%" height="100%" />
             </button>
             <div class="item-details">
@@ -214,6 +217,7 @@ onMounted(() => {
         <div v-else-if="suggestedProducts.length" class="recommendation-list" :class="{ 'horizontal-list': cart.count }">
           <article v-for="item in suggestedProducts" :key="item.id" class="recommendation-card">
             <button class="recommendation-image" :aria-label="`View ${item.title}`" @click="openProduct(item.id)">
+              <ProductSaleType class="image-sale-type" :sale-type="item.saleType" compact />
               <van-image :src="item.image" :alt="item.title" fit="cover" width="100%" height="100%" />
             </button>
             <div class="recommendation-body">
@@ -289,7 +293,7 @@ onMounted(() => {
         </p>
         <div class="order-lines">
           <div v-for="item in cart.selectedItems" :key="item.id" class="order-line">
-            <span>{{ item.title }} 鑴?{{ item.quantity }}</span><strong>{{ money(item.price * item.quantity) }}</strong>
+            <span><ProductSaleType :sale-type="item.saleType" compact /> {{ item.title }} 鑴?{{ item.quantity }}</span><strong>{{ money(item.price * item.quantity) }}</strong>
           </div>
         </div>
         <div class="total-lines">
@@ -423,7 +427,15 @@ button:focus-visible {
   flex-shrink: 0;
 }
 
+.image-sale-type {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
 .item-image {
+  position: relative;
   flex: 0 0 90px;
 
   width: 90px;
@@ -619,6 +631,7 @@ h2 {
 }
 
 .recommendation-image {
+  position: relative;
   display: block;
 
   width: 100%;
@@ -677,7 +690,7 @@ h2 {
 
   height: 28px;
 
-  border: 1px solid #0860ff;
+  border: 0;
 
   border-radius: 5px;
 

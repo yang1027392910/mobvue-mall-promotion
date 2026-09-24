@@ -35,6 +35,7 @@ function normalizeProduct(item: RawFavoriteItem): ProductCardData {
 
   return {
     id: toNumber(product.id ?? product.productId ?? item.productId),
+    saleType: product.saleType ?? item.saleType,
     title: String(product.name ?? product.productName ?? product.title ?? ""),
     image: getAssetUrl(String(product.image ?? product.imageUrl ?? product.cover ?? "")),
     price: toNumber(product.phPrice ?? product.price),

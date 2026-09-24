@@ -10,9 +10,11 @@ import { useRouter } from "vue-router"
 import rankNo1 from "@/assets/home/no_1.png"
 import rankNo2 from "@/assets/home/no_2.png"
 import rankNo3 from "@/assets/home/no_3.png"
+import ProductSaleType from "@/components/ProductSaleType/index.vue"
 import { useCartStore } from "@/pinia/stores/cart"
 
 interface ProductItem {
+  saleType?: number | string | null
   id: number
   name: string
   image: string
@@ -104,6 +106,7 @@ function normalizeHotProduct(item: RawHotProductItem, index: number): ProductIte
 
   return {
     id: toNumber(item.productId ?? item.spuId ?? item.id),
+    saleType: item.saleType,
     name: String(item.name ?? item.productName ?? item.goodsName ?? item.title ?? "Unnamed Product"),
     image: getProductImage(String(item.image ?? item.imageUrl ?? item.productImage ?? item.mainImage ?? item.picUrl ?? item.cover ?? item.coverUrl ?? "")),
     rank: Number.isSafeInteger(rank) && rank > 0 ? rank : index + 1,
@@ -194,6 +197,7 @@ watch(activeTab, getHotProductList, { immediate: true })
         </div> -->
         <article v-for="item in products" :key="item.id" class="product-card">
           <button class="product-image-wrap" type="button" :aria-label="`View ${item.name}`" @click="handleProductClick(item)">
+            <ProductSaleType class="product-sale-type" :sale-type="item.saleType" compact />
             <van-image class="product-image" :src="item.image" :alt="item.name" fit="cover">
               <template #error>
                 <Icon icon="solar:gallery-bold-duotone" />
@@ -368,6 +372,12 @@ watch(activeTab, getHotProductList, { immediate: true })
   display: flex;
   position: relative;
   box-shadow: 0 2px 8px #17243d05;
+}
+.product-sale-type {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
 }
 .product-image-wrap {
   position: relative;

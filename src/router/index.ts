@@ -64,6 +64,12 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: "Order Submitted", robots: "noindex, nofollow" }
   },
   {
+    path: "/payment/:method?",
+    name: "Payment",
+    component: () => import("@/pages/payment/index.vue"),
+    meta: { title: "Payment", robots: "noindex, nofollow" }
+  },
+  {
     path: "/orders",
     name: "MyOrders",
     component: () => import("@/pages/orders/index.vue"),

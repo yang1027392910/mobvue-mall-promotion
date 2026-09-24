@@ -5,6 +5,7 @@ export interface HotProductListRequestData {
 }
 
 export interface RawHotProductItem {
+  saleType?: number | string | null
   rating?: number | string
   categoryIcon?: string
   categoryName?: string

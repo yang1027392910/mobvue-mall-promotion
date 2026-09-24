@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatOrderDate, formatOrderMoney, orderStatuses, orderTotal } from "@@/apis/orders/normalize"
+import { canOpenPayment, getPaymentState, showPaymentButton } from "@@/constants/payment"
 import { computed, ref, watch } from "vue"
 import { useRouter } from "vue-router"
 import { useOrdersStore } from "@/pinia/stores/orders"
@@ -36,24 +37,31 @@ const filteredOrders = computed(() => orders.orders.filter(order => activeStatus
         </van-button>
       </van-empty>
       <div v-else-if="filteredOrders.length" class="order-list">
-        <button v-for="order in filteredOrders" :key="order.id" class="order-panel order-list-card" @click="router.push({ path: '/order-details', query: { id: order.id } })">
-          <div class="order-card-header">
-            <strong>#{{ order.orderNo }}</strong><span class="order-status" :class="order.statusGroup.toLowerCase()">{{ order.status }}</span>
-          </div>
-          <time class="order-date" :datetime="order.createdAt">{{ formatOrderDate(order.createdAt) }}</time>
-          <div class="order-preview">
-            <div class="order-thumbnails">
-              <div v-for="(image, index) in order.productImages.slice(0, 2)" :key="index" class="order-thumbnail">
-                <van-image :src="image" alt="Product" fit="cover" width="100%" height="100%" />
+        <article v-for="order in filteredOrders" :key="order.id" class="order-panel order-list-card">
+          <button class="order-open" type="button" @click="router.push({ path: '/order-details', query: { id: order.id } })">
+            <div class="order-card-header">
+              <strong>#{{ order.orderNo }}</strong><span class="order-status" :class="order.statusGroup.toLowerCase()">{{ order.status }}</span>
+            </div>
+            <time class="order-date" :datetime="order.createdAt">{{ formatOrderDate(order.createdAt) }}</time>
+            <div class="order-preview">
+              <div class="order-thumbnails">
+                <div v-for="(image, index) in order.productImages.slice(0, 2)" :key="index" class="order-thumbnail">
+                  <van-image :src="image" alt="Product" fit="cover" width="100%" height="100%" />
+                </div>
               </div>
+              <span v-if="order.productImages.length > 2" class="order-thumbnail-count">+{{ order.productImages.length - 2 }}</span>
+              <div class="order-preview-info">
+                <span>{{ order.itemCount }} {{ order.itemCount === 1 ? 'item' : 'items' }}</span><strong>{{ formatOrderMoney(orderTotal(order)) }}</strong>
+              </div>
+              <van-icon class="order-chevron" name="arrow" />
             </div>
-            <span v-if="order.productImages.length > 2" class="order-thumbnail-count">+{{ order.productImages.length - 2 }}</span>
-            <div class="order-preview-info">
-              <span>{{ order.itemCount }} {{ order.itemCount === 1 ? 'item' : 'items' }}</span><strong>{{ formatOrderMoney(orderTotal(order)) }}</strong>
-            </div>
-            <van-icon class="order-chevron" name="arrow" />
+          </button>
+          <div v-if="showPaymentButton(order)" class="order-payment-action">
+            <button class="order-pay-button" :class="getPaymentState(order)?.className" :disabled="!canOpenPayment(order)" type="button" @click="router.push({ path: '/payment', query: { id: order.id } })">
+              <van-icon :name="getPaymentState(order)?.icon" /> {{ getPaymentState(order)?.label }}
+            </button>
           </div>
-        </button>
+        </article>
       </div>
       <van-empty v-else description="No orders with this status yet" />
       <p v-if="orders.listError && orders.orders.length" role="alert">

@@ -1,4 +1,5 @@
 export interface ProductItem {
+  saleType?: number | string | null
   id: number
   categoryId: number
   name: string
@@ -12,6 +13,7 @@ export interface ProductItem {
 }
 
 export interface RawProductItem {
+  saleType?: number | string | null
   id?: number
   productId?: number
   categoryId?: number

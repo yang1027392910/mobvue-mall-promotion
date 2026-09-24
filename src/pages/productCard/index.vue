@@ -7,10 +7,12 @@ import { showFailToast, showSuccessToast } from "vant"
 import { computed, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import ProductImagePreview from "@/components/ProductImagePreview/index.vue"
+import ProductSaleType from "@/components/ProductSaleType/index.vue"
 import { useSeo } from "@/composables/useSeo"
 import { useCartStore } from "@/pinia/stores/cart"
 
 interface ProductDetail {
+  saleType?: number | string | null
   id: number
   name: string
   title: string
@@ -206,6 +208,7 @@ function normalizeProduct(item: RawProductItem): ProductDetail {
 
   return {
     id: toNumber(item.id ?? item.productId),
+    saleType: item.saleType,
     name: String(item.name ?? item.productName ?? item.title ?? ""),
     title: String(item.title ?? item.name ?? item.productName ?? ""),
     subtitle: String(item.subtitle ?? ""),
@@ -404,6 +407,7 @@ watch(productId, () => {
         </section>
 
         <section class="basic-section">
+          <ProductSaleType :sale-type="product.saleType" class="detail-sale-type" />
           <div class="product-heading">
             <h1 class="product-name">
               {{ product.name }}
@@ -595,6 +599,9 @@ watch(productId, () => {
 .basic-section {
   padding: 14px 18px 16px;
   background: #ffffff;
+}
+.detail-sale-type {
+  margin-bottom: 10px;
 }
 .product-heading {
   display: flex;

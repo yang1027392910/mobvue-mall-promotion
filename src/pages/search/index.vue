@@ -7,9 +7,11 @@ import { Icon } from "@iconify/vue"
 import { computed, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import noDateImage from "@/assets/serch/no_date.png"
+import ProductSaleType from "@/components/ProductSaleType/index.vue"
 import { useSeo } from "@/composables/useSeo"
 
 interface SearchProduct {
+  saleType?: number | string | null
   id: number
   name: string
   image: string
@@ -106,6 +108,7 @@ function normalizeProduct(item: RawProductItem): SearchProduct {
 
   return {
     id: toNumber(item.id ?? item.productId),
+    saleType: item.saleType,
     name: String(item.name ?? item.productName ?? item.title ?? "Unnamed Product"),
     image: getAssetUrl(item.image ?? item.imageUrl ?? item.cover ?? item.images),
     minOrder: toNumber(item.minimumOrderQuantity ?? item.minOrderQuantity ?? item.minOrder ?? item.moq ?? item.stock),
@@ -389,7 +392,7 @@ onBeforeUnmount(() => {
             <Icon v-else icon="solar:box-minimalistic-linear" />
           </div>
           <div class="search-result-card__body">
-            <h3>{{ item.name }}</h3>
+            <h3><ProductSaleType :sale-type="item.saleType" compact /> {{ item.name }}</h3>
             <p>Min Order: {{ item.minOrder }} pcs</p>
             <div class="search-result-card__profit">
               <span v-if="item.profit > 0">Profit {{ formatMoney(item.profit) }}</span>

@@ -19,8 +19,10 @@ import homeLogo from "@/assets/home/logo.png"
 import rankNo1 from "@/assets/home/no_1.png"
 import rankNo2 from "@/assets/home/no_2.png"
 import rankNo3 from "@/assets/home/no_3.png"
+import ProductSaleType from "@/components/ProductSaleType/index.vue"
 
 interface ProductItem {
+  saleType?: number | string | null
   id: number
   name: string
   image: string
@@ -213,6 +215,7 @@ function normalizeHotProduct(item: RawHotProductItem, index: number): ProductIte
 
   return {
     id: toNumber(item.productId ?? item.id ?? item.spuId ?? item.hotProductId, index + 1),
+    saleType: item.saleType,
     name: String(item.name ?? item.productName ?? item.goodsName ?? item.title ?? "Unnamed Product"),
     image: getAssetUrl(String(item.image ?? item.imageUrl ?? item.productImage ?? item.mainImage ?? item.picUrl ?? item.cover ?? item.coverUrl ?? "")),
     score: toNumber(item.score ?? item.tiktokScore ?? item.tikTokScore ?? item.hotScore).toFixed(1),
@@ -559,6 +562,7 @@ onBeforeUnmount(() => {
             class="today-card"
             @click="handleProductClick(item)"
           >
+            <ProductSaleType class="today-card__sale-type" :sale-type="item.saleType" compact />
             <div class="today-card__image-wrap">
               <img class="today-card__image" :src="item.image" :alt="item.name">
               <img
@@ -610,6 +614,7 @@ onBeforeUnmount(() => {
             class="today-card"
             @click="handleProductClick(item)"
           >
+            <ProductSaleType class="today-card__sale-type" :sale-type="item.saleType" compact />
             <div class="today-card__image-wrap">
               <img class="today-card__image" :src="getAssetUrl(item.cover)" :alt="getRawProductTitle(item)">
             </div>
@@ -1031,6 +1036,7 @@ onBeforeUnmount(() => {
 }
 
 .today-card {
+  position: relative;
   min-width: 0;
   padding: 6px;
   border: 1px solid #e8efff;
@@ -1038,6 +1044,13 @@ onBeforeUnmount(() => {
   background: #ffffff;
   box-shadow: 0 6px 16px rgba(22, 119, 255, 0.1);
   cursor: pointer;
+}
+
+.today-card__sale-type {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
 }
 
 .today-card__image-wrap {

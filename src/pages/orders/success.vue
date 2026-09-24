@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { formatOrderMoney, orderSubtotal } from "@@/apis/orders/normalize"
+import { canOpenPayment, getPaymentState, showPaymentButton } from "@@/constants/payment"
 import { showFailToast, showSuccessToast } from "vant"
 import { computed, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
@@ -80,7 +81,6 @@ async function copyOrderNumber() {
             </dd>
           </div>
           <div><dt>Status</dt><dd><span class="order-status" :class="order.statusGroup.toLowerCase()">{{ order.status }}</span></dd></div>
-          <div><dt>Pickup / Delivery</dt><dd>{{ order.delivery }}</dd></div>
         </dl>
       </section>
       <section class="next-step-card">
@@ -90,6 +90,9 @@ async function copyOrderNumber() {
         <div><h2>Next Step</h2><p>Please contact our customer service team to confirm pricing, shipping and delivery details.</p></div>
       </section>
       <div class="order-actions">
+        <button v-if="showPaymentButton(order)" class="order-pay-button" :class="getPaymentState(order)?.className" :disabled="!canOpenPayment(order)" type="button" @click="router.push({ path: '/payment', query: { id: order.id } })">
+          <van-icon :name="getPaymentState(order)?.icon" /> {{ getPaymentState(order)?.label }}
+        </button>
         <van-button block type="primary" color="#0860ff" icon="chat-o" @click="router.replace('/orders')">
           View Order
         </van-button>

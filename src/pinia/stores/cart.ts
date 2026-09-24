@@ -5,6 +5,7 @@ import { computed, ref, watch } from "vue"
 import { useUserStore } from "@/pinia/stores/user"
 
 export interface CartProduct {
+  saleType?: number | string | null
   id: number
   title: string
   image: string
@@ -21,6 +22,7 @@ function normalizeItem(row: RawCartItem): CartItem {
   const item = {
     cartId: Number(row.cartId ?? row.id),
     id: Number(row.productId ?? product.productId ?? product.id),
+    saleType: product.saleType ?? row.saleType,
     title: String(product.name ?? product.productName ?? product.title ?? ""),
     image: !image || /^https?:\/\//.test(image) ? image : `${(import.meta.env.VITE_IMAGE_BASE_URL || "").replace(/\/$/, "")}/${image.replace(/^\//, "")}`,
     price: Number(product.phPrice ?? product.price),
