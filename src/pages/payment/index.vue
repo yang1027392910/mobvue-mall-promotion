@@ -15,6 +15,7 @@ const orders = useOrdersStore()
 const user = useUserStore()
 const selected = ref(paymentMethods[0]!.id)
 const reference = ref("")
+const referenceError = ref("")
 const confirming = ref(false)
 let active = true
 onBeforeUnmount(() => {
@@ -30,12 +31,18 @@ const title = computed(() => method.value ? `Pay with ${method.value.name}` : "P
 
 watch(() => [orderId.value, user.token], () => {
   reference.value = ""
+  referenceError.value = ""
   if (user.token) void orders.fetchDetail(orderId.value)
 }, { immediate: true })
 watch(methodId, () => {
   reference.value = ""
+  referenceError.value = ""
   if (method.value) selected.value = method.value.id
 }, { immediate: true })
+
+watch(reference, (value) => {
+  if (value.trim()) referenceError.value = ""
+})
 
 function back() {
   void router.push(methodId.value ? { path: "/payment", query: { id: orderId.value } } : "/orders")
@@ -54,6 +61,12 @@ async function copy(value: string, label: string) {
 }
 async function reportPayment() {
   if (!payable.value || !method.value || confirming.value || !user.token) return
+  const referenceNo = reference.value.trim()
+  if (!referenceNo) {
+    referenceError.value = "Please enter the reference number."
+    return
+  }
+  referenceError.value = ""
   const id = Number(orderId.value)
   if (!Number.isSafeInteger(id) || id <= 0) {
     showFailToast("Invalid order ID. Please reopen the order from My Orders.")
@@ -62,7 +75,7 @@ async function reportPayment() {
   const payload = {
     orderId: id,
     paymentMethod: method.value.paymentMethod,
-    referenceNo: reference.value.trim()
+    referenceNo
   }
   const token = user.token
   const requestedOrderId = orderId.value
@@ -185,12 +198,15 @@ async function reportPayment() {
           <li>Tap &ldquo;I Have Paid&rdquo;</li>
         </ol>
       </section>
-      <form class="payment-reference-form" @submit.prevent="reportPayment">
-        <label for="payment-reference">{{ method.name }} Reference No. <span>(Optional)</span></label>
+      <form class="payment-reference-form" novalidate @submit.prevent="reportPayment">
+        <label for="payment-reference">{{ method.name }} Reference No. <span>(Required)</span></label>
         <div class="payment-reference-input">
-          <input id="payment-reference" v-model="reference" type="text" :disabled="confirming" maxlength="100" autocomplete="off" placeholder="Enter reference number (e.g. 123456789)">
+          <input id="payment-reference" v-model="reference" type="text" required :aria-invalid="!!referenceError" :aria-describedby="referenceError ? 'payment-reference-error' : undefined" :disabled="confirming" maxlength="100" autocomplete="off" placeholder="Enter reference number">
           <van-icon name="records-o" aria-hidden="true" />
         </div>
+        <p v-if="referenceError" id="payment-reference-error" class="payment-reference-error" role="alert">
+          {{ referenceError }}
+        </p>
         <button class="payment-primary" type="submit" :disabled="confirming">
           {{ confirming ? "Submitting..." : getPaymentState(order)?.label }}
         </button>

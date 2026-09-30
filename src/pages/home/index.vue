@@ -14,7 +14,6 @@ import { restorePageScroll } from "@@/utils/restore-page-scroll"
 import { Icon } from "@iconify/vue"
 import { onActivated, onBeforeUnmount, onMounted, ref } from "vue"
 import { useRouter } from "vue-router"
-import homeBanner from "@/assets/home/banner-suppliers.png"
 import homeLogo from "@/assets/home/logo.png"
 import rankNo1 from "@/assets/home/no_1.png"
 import rankNo2 from "@/assets/home/no_2.png"
@@ -109,15 +108,7 @@ const homeNavigations = ref<HomeNavigationItem[]>([
     color: "#246bfe"
   }
 ])
-const banners = ref<BannerItem[]>([
-  {
-    id: "local-banner",
-    title: "china2ph banner",
-    image: homeBanner,
-    jumpType: "link",
-    jumpValue: "/calculator?mode=weight&from=profile"
-  }
-])
+const banners = ref<BannerItem[]>([])
 const bannerDragThreshold = 8
 const bannerClickSuppressed = ref(false)
 let bannerPressStart: PointerPoint | null = null
@@ -415,9 +406,9 @@ async function getBannerList() {
       .map(normalizeBanner)
       .filter(item => item.image)
 
-    if (apiBanners.length) banners.value = [banners.value[0], ...apiBanners]
+    banners.value = apiBanners
   } catch {
-    // Keep the local banner as fallback.
+    banners.value = []
   }
 }
 
@@ -462,7 +453,7 @@ onBeforeUnmount(() => {
         <Icon icon="mdi:customer-service" />
       </button>
     </header>
-    <div class="home-banner">
+    <div v-if="banners.length" class="home-banner">
       <van-swipe
         class="home-banner-swipe"
         :autoplay="3500"
@@ -484,20 +475,6 @@ onBeforeUnmount(() => {
           @click="handleBannerClick(banner, $event)"
         >
           <img :src="banner.image" :alt="banner.title" draggable="false">
-          <div v-if="banner.id === 'local-banner'" class="home-banner-copy">
-            <h1>
-              Find Verified<br>
-              China Suppliers
-            </h1>
-            <h2>
-              Grow Your Business in<br>
-              the Philippines
-            </h2>
-            <button class="home-banner-calculator" type="button">
-              Free Calculator
-              <Icon icon="solar:calculator-bold" />
-            </button>
-          </div>
         </van-swipe-item>
       </van-swipe>
     </div>
@@ -782,60 +759,6 @@ onBeforeUnmount(() => {
 
 .home-banner-item {
   position: relative;
-}
-
-.home-banner-copy {
-  position: absolute;
-  top: 17px;
-  left: 17px;
-  z-index: 2;
-  width: 48%;
-  color: #10245d;
-  pointer-events: none;
-}
-
-.home-banner-copy h1 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 900;
-  line-height: 21px;
-  letter-spacing: -0.4px;
-}
-
-.home-banner-copy h2 {
-  margin: 7px 0 9px;
-  color: #0756f3;
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 17px;
-}
-
-.home-banner-calculator {
-  display: flex;
-  width: fit-content;
-  min-height: 28px;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 3px 12px;
-  border: 0;
-  border-radius: 999px;
-  background: #0756f3;
-  color: #fff;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  pointer-events: auto;
-}
-
-.home-banner-calculator svg {
-  width: 15px;
-  height: 15px;
-}
-
-.home-banner-calculator:active {
-  transform: scale(0.96);
 }
 
 .platform-stats {

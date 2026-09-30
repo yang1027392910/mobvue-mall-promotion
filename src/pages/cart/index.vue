@@ -16,7 +16,6 @@ const cart = useCartStore()
 const user = useUserStore()
 const orders = useOrdersStore()
 const coupons = useCouponsStore()
-const deliveryType = ref<1 | 2>(1)
 const orderRemark = ref("")
 const submitting = ref(false)
 const checkoutVisible = ref(false)
@@ -50,7 +49,7 @@ async function submitOrder() {
   try {
     const created = await orders.create({
       cartIds: submittedItems.map(item => item.cartId),
-      deliveryType: deliveryType.value,
+      deliveryType: 1,
       userCouponId: coupons.selectedCoupon?.id ?? null,
       remark: orderRemark.value.trim()
     })
@@ -62,7 +61,6 @@ async function submitOrder() {
     coupons.markSelectedUsed()
     checkoutVisible.value = false
     orderRemark.value = ""
-    deliveryType.value = 1
     await Promise.all([cart.fetchItems(), coupons.fetchRewards(), orders.fetchList()])
     await router.push({ path: "/order-success", query: created.id ? { id: created.id } : {} })
   } finally {
@@ -261,14 +259,9 @@ onMounted(() => {
         <div class="checkout-block">
           <h3>Shipping Method</h3>
           <label class="choice-row">
-            <van-radio :model-value="deliveryType" :name="1" checked-color="#ff2d4f" @update:model-value="deliveryType = 1" />
+            <van-radio :model-value="1" :name="1" checked-color="#ff2d4f" />
             <span><strong>Self Pickup</strong><small>Pick up at our store</small></span>
             <em>Free</em>
-          </label>
-          <label class="choice-row">
-            <van-radio :model-value="deliveryType" :name="2" checked-color="#ff2d4f" @update:model-value="deliveryType = 2" />
-            <span><strong>Delivery</strong><small>Contact customer service</small></span>
-            <em>To be confirmed</em>
           </label>
         </div>
 
