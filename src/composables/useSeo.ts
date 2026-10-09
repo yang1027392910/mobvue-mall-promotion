@@ -239,7 +239,7 @@ export function useSeo() {
 
     if (!keyword) {
       setPageSeo({
-        title: "Search China Wholesale Products | china2ph",
+        title: "Search China Wholesale Products | xiao variety shop",
         description: "Search wholesale products from verified China suppliers for Philippines buyers.",
         seoKeywords: "China products, wholesale search, Yiwu suppliers, Philippines sourcing",
         url: `${SITE_URL}${SEARCH_PATH}`
@@ -248,7 +248,7 @@ export function useSeo() {
     }
 
     setPageSeo({
-      title: `Search "${keyword}" | china2ph`,
+      title: `Search "${keyword}" | xiao variety shop`,
       description: `Find ${keyword} from verified China suppliers. Compare factory prices and source wholesale products for the Philippines.`,
       keywords: `${keyword}, wholesale ${keyword}, China supplier, Philippines import`,
       url: `${SITE_URL}${SEARCH_PATH}?keyword=${encodeURIComponent(keyword)}`
@@ -259,7 +259,7 @@ export function useSeo() {
     const name = getTrimmedValue(categoryName) || "China Wholesale Products"
 
     setPageSeo({
-      title: `${name} Wholesale Products | china2ph`,
+      title: `${name} Wholesale Products | xiao variety shop`,
       description: `Find ${name} wholesale products from verified China suppliers. Compare factory prices, Philippine selling prices, and estimated profit opportunities.`,
       keywords: `${name} wholesale, ${name} China suppliers, Philippines import, China wholesale products`,
       url: `${SITE_URL}${PRODUCT_LIST_PATH}`

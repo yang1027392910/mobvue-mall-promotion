@@ -84,7 +84,7 @@ const menuItems: MenuItem[] = [
   },
   {
     title: "About Us",
-    description: "Learn about china2ph and policies",
+    description: "Learn about xiao variety shop and policies",
     icon: "info-o",
     path: "/about-policies#about-us"
   }
@@ -198,7 +198,7 @@ onMounted(() => {
           {{ loggedIn ? avatarInitial : "Y" }}
         </div>
         <div class="header-copy">
-          <h1>{{ loggedIn ? "Hello! 棣冩啟" : "Welcome to china2ph" }}</h1>
+          <h1>{{ loggedIn ? "Hello! 棣冩啟" : "Welcome to xiao variety shop" }}</h1>
           <p v-if="loggedIn">
             {{ displayEmail }}
           </p>
@@ -508,7 +508,7 @@ onMounted(() => {
 
   align-items: center;
 
-  gap: 15px;
+  gap: 8px;
 }
 
 .header-profile.is-guest {
@@ -550,7 +550,7 @@ onMounted(() => {
 .header-copy h1 {
   margin: 0;
 
-  font-size: 20px;
+  font-size: 16px;
 
   font-weight: 800;
 

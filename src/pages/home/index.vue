@@ -448,7 +448,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="page-home">
     <header class="home-header">
-      <img class="home-logo" :src="homeLogo" alt="china2ph">
+      <img class="home-logo" :src="homeLogo" alt="xiao variety shop">
       <button class="service-button" type="button" aria-label="Contact customer service" @click="handleCustomerServiceClick">
         <Icon icon="mdi:customer-service" />
       </button>
@@ -613,7 +613,7 @@ onBeforeUnmount(() => {
     </section>
 
     <section class="why-choose">
-      <h2>Why Choose china2ph?</h2>
+      <h2>Why Choose xiao variety shop?</h2>
       <div class="why-choose__grid">
         <div class="why-choose__item">
           <span class="why-choose__icon">

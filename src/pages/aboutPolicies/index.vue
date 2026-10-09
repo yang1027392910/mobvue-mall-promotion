@@ -200,7 +200,7 @@ onMounted(() => {
         <div class="card-copy">
           <h2>About Us</h2>
           <p>
-            China2PH is a professional sourcing platform connecting high-quality Chinese suppliers
+            xiao variety shop is a professional sourcing platform connecting high-quality Chinese suppliers
             with buyers in the Philippines. We provide transparent pricing, reliable products and
             one-stop sourcing services to help your business grow.
           </p>

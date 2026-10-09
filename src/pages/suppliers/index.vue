@@ -100,7 +100,7 @@ onMounted(() => {
         <span>
           <Icon icon="solar:shield-check-bold" />
         </span>
-        <p>All suppliers are verified by china2ph. Contact information is available for verified users.</p>
+        <p>All suppliers are verified by xiao variety shop. Contact information is available for verified users.</p>
       </section>
 
       <van-loading

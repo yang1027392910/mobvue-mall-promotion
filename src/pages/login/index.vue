@@ -384,7 +384,7 @@ onBeforeUnmount(() => {
       </section>
 
       <footer class="login-footer">
-        © 2026 china2ph. All rights reserved.
+        © 2026 xiao variety shop. All rights reserved.
       </footer>
     </div>
   </div>

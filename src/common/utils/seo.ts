@@ -2,9 +2,9 @@ import type { RouteLocationNormalizedLoaded, RouteMeta } from "vue-router"
 import { setManagedSeo } from "@/composables/useSeo"
 
 const SITE_URL = "https://china2ph.com"
-const SITE_NAME = "china2ph"
-const DEFAULT_TITLE = "china2ph - Verified China Suppliers for Philippines Buyers"
-const DEFAULT_DESCRIPTION = "china2ph helps Philippines buyers find verified China suppliers, compare factory prices, calculate product profits, and source wholesale goods from China."
+const SITE_NAME = "xiao variety shop"
+const DEFAULT_TITLE = "xiao variety shop - Verified China Suppliers for Philippines Buyers"
+const DEFAULT_DESCRIPTION = "xiao variety shop helps Philippines buyers find verified China suppliers, compare factory prices, calculate product profits, and source wholesale goods from China."
 const DEFAULT_IMAGE = `${SITE_URL}/pwa-512x512.png`
 
 type SeoRouteMeta = RouteMeta & {

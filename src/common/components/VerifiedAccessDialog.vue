@@ -76,7 +76,7 @@ function confirm() {
             <img :src="giftTopImage" alt="">
           </div>
           <div v-if="showWelcomeTitle" class="title">
-            Welcome to china2ph!
+            Welcome to xiao variety shop!
           </div>
           <div class="benefit-panel">
             <article
